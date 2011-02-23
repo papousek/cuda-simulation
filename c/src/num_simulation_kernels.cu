@@ -1,8 +1,8 @@
-#include "num_simulation_kernels.cu"
+#include "rfk45.cu"
 
-extern void solve_ode_on_gpu(
+void solve_ode_on_gpu(
 	/* INPUT */
-	float*	init_vectors,
+	const float*	init_vectors,
 	const int	number_of_vectors,
 	const int	size_of_vector,
 	const float	init_time,
@@ -16,4 +16,5 @@ extern void solve_ode_on_gpu(
 	float*		return_code,
 	int*		number_of_successful_steps,
 	float*		simulation
-);
+) {
+}
