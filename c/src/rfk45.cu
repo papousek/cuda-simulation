@@ -34,7 +34,10 @@
 #define N4 (2197/4104)
 #define N5 (-1/5)
 
-#define MINIMUM_TIME_STEP 0.0000
+#define MINIMUM_TIME_STEP 0.00001
+#define MAXIMUM_TIME_STEP 10
+#define MINIMUM_SCALAR_TO_OPTIMIZE_STEP 0.1
+#define MAXIMUM_SCALAR_TO_OPTIMIZE_STEP 4.0
 
 #ifndef KERNEL_RETURN_CODES
 #define KERNEL_RETURN_CODES
@@ -54,28 +57,65 @@ inline void __device__ example_f(const float time, const float value, const int 
 	*result = value;
 }
 
-void __device__ rfk45_step(
-	float time,
-	const float 	expected_time_step,
-	const float 	value,
-	const int 	variable_index,
-	const float 	abs_divergency,
-	const float 	rel_divergency,
-	const 		t_ode_function ode_function,
-	float* 		result,
-	float* 		changed_time_step
+void __device__ rfk45_next_value(
+	const float time,
+	const float 		expected_time_step,
+	const float 		value,
+	const int 		variable_index,
+	const float 		abs_divergency,
+	const float 		rel_divergency,
+	const t_ode_function 	ode_function,
+	const int		limit,
+	float* 			result,
+	float* 			changed_time_step,
+	int*			number_of_executed_steps,
+	int*			return_code
 ) {
-	float k1, k2, k3, k4, k5, k6;
-	ode_function(time + expected_time_step, value, variable_index, &k1);
-	ode_function(time + A2 * expected_time_step, value + B2 * k1, variable_index, &k2);
-	ode_function(time + A3 * expected_time_step, value + B3 * k1 + C3 * k2, variable_index, &k3);
-	ode_function(time + A4 * expected_time_step, value + B4 * k1 + C4 * k2 + D4 * k3, variable_index, &k4);
-	ode_function(time + A5 * expected_time_step, value + B5 * k1 + C5 * k2 + D5 * k3 + E5 * k4, variable_index, &k5);
-	ode_function(time + A6 * expected_time_step, value + B6 * k1 + C6 * k2 + D6 * k3 + E6 * k4 + F6 * k5, variable_index, &k6);
 
-	float error 	= abs(R1 * k1 + R3 * k3 + R4 * k4 + R5 * k5 + R6 * k6);
-	float y		= value + N1 * k1 + N3 * k3 + N4 * k4 + N5 * k5;
+
+	*number_of_executed_steps = 0;
+
+	float h = expected_time_step;
+
+	while(*number_of_executed_steps < limit) {
+
+		*number_of_executed_steps++;	
 	
+		float k1, k2, k3, k4, k5, k6, s;
+
+		ode_function(time + h, value, variable_index, &k1);
+		ode_function(time + A2 * h, value + B2 * k1, variable_index, &k2);
+		ode_function(time + A3 * h, value + B3 * k1 + C3 * k2, variable_index, &k3);
+		ode_function(time + A4 * h, value + B4 * k1 + C4 * k2 + D4 * k3, variable_index, &k4);
+		ode_function(time + A5 * h, value + B5 * k1 + C5 * k2 + D5 * k3 + E5 * k4, variable_index, &k5);
+		ode_function(time + A6 * h, value + B6 * k1 + C6 * k2 + D6 * k3 + E6 * k4 + F6 * k5, variable_index, &k6);
+
+		float error 	= abs(R1 * k1 + R3 * k3 + R4 * k4 + R5 * k5 + R6 * k6);
+		if (error < abs_divergency && h < 2 * MINIMUM_TIME_STEP) {
+			*result 		= value + N1 * k1 + N3 * k3 + N4 * k4 + N5 * k5;			
+			*changed_time_step 	= h;
+			*return_code 		= CODE_SUCCESS;
+		}
+		else {
+			if (error == 0) {
+				s = 0.1;	
+			}
+			else {
+				s = sqrt(sqrt((abs_divergency * expected_time_step)/(2 * error)));
+				if (s < MINIMUM_SCALAR_TO_OPTIMIZE_STEP) s = MINIMUM_SCALAR_TO_OPTIMIZE_STEP;
+				if (s < MAXIMUM_SCALAR_TO_OPTIMIZE_STEP) s = MAXIMUM_SCALAR_TO_OPTIMIZE_STEP;
+			}
+			h = s * h;
+			if (h < MINIMUM_TIME_STEP) h = MINIMUM_TIME_STEP;
+			if (h > MAXIMUM_TIME_STEP) h = MAXIMUM_TIME_STEP;
+			*changed_time_step = h;
+		}
+	}
+	
+	*return_code = CODE_TIMEOUT;
+}	
+
+
 void __global__ rfk45_kernel(
 	/* INPUT */
 	const float*	init_vectors,
@@ -89,7 +129,7 @@ void __global__ rfk45_kernel(
 	const float	rel_divergency,
 	const t_ode_function ode_function,
 	/* OUTPUT */
-	float*		return_code,
+	int*		return_code,
 	int*		number_of_successful_steps,
 	float*		simulation
 
