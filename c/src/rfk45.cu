@@ -76,9 +76,6 @@ void __device__ rfk45_step(
 	float error 	= abs(R1 * k1 + R3 * k3 + R4 * k4 + R5 * k5 + R6 * k6);
 	float y		= value + N1 * k1 + N3 * k3 + N4 * k4 + N5 * k5;
 	
-
-}
-
 void __global__ rfk45_kernel(
 	/* INPUT */
 	const float*	init_vectors,
@@ -95,11 +92,11 @@ void __global__ rfk45_kernel(
 	float*		return_code,
 	int*		number_of_successful_steps,
 	float*		simulation
+
 ) {
 
 	int id = (blockIdx.y * gridDim.x + blockIdx.x) * blockDim.x * blockDim.y + threadIdx.y * blockDim.x + threadIdx.x;
 	if (id >= number_of_vectors) return;
-
 	const float* previous_vector = &init_vectors[id * number_of_vectors];
 	unsigned int current_step = 0;
 	
@@ -112,6 +109,4 @@ void __global__ rfk45_kernel(
 	}
 	
 	number_of_successful_steps[id] = current_step > max_number_of_steps ? max_number_of_steps : current_step;
-
-	
 }
