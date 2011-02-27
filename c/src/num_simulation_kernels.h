@@ -1,19 +1,16 @@
 #include "num_simulation_kernels.cu"
 
-extern void solve_ode_on_gpu(
-	/* INPUT */
-	float*	init_vectors,
-	const int	number_of_vectors,
-	const int	size_of_vector,
-	const float	init_time,
-	const float 	target_time,
-	const float	time_step,
-	const int	max_number_of_steps,
-	const float	abs_divergency,
-	const float	rel_divergency,
-	const t_ode_function ode_function,
-	/* OUTPUT */
-	float*		return_code,
-	int*		number_of_successful_steps,
-	float*		simulation
+extern void __global__ rfk45_kernel(
+	const float time,
+	const float 		time_step,
+	const float*		vector,
+	const int		vector_size,
+	const int 		variable_index,
+	const float 		abs_divergency,
+	void ode_function (const float, const float*, const int, const int, float*),
+	const int		max_number_of_steps,
+	float* 			auxiliary_for_coefficient,
+	float* 			result,
+	int*			number_of_executed_steps,
+	int*			return_code
 );
