@@ -36,7 +36,7 @@
 
 #define MINIMUM_TIME_STEP 0.000001
 #define MAXIMUM_TIME_STEP 100
-#define MINIMUM_SCALAR_TO_OPTIMIZE_STEP 0.01
+#define MINIMUM_SCALAR_TO_OPTIMIZE_STEP 0.00001
 #define MAXIMUM_SCALAR_TO_OPTIMIZE_STEP 4.0
 
 #ifndef KERNEL_RETURN_CODES
@@ -58,7 +58,6 @@ void __global__ rfk45_kernel(
 	const int		number_of_vectors,
 	const int		vector_size,
 	const float 		abs_divergency,
-	void (*ode_function) (const float, const float*, const int, const int, float*),
 	const int		max_number_of_steps,
 	float* 			result,
 	int*			number_of_executed_steps,
@@ -98,47 +97,92 @@ void __global__ rfk45_kernel(
 	}
 	__syncthreads();
 
-	// set current time and position
+	// set current time, position and number of executed steps
 	float current_time 	= time;
 	int position		= 0;
+	int steps		= 0;
+	float current_time_step	= 0;
 
 	// note the pointer on the vetor
-	const float* vector 	= &(vectors[vector_size * simulation_id]);
+	float* vector = &(result[max_position * vector_size * simulation_id  + vector_size * position]);
+
+	// copy init vector to the result
+	vector[dimension_id] = vectors[vector_size * simulation_id + dimension_id];
 
 	// perform the simulation
-	while(position < max_number_of_steps && current_time < target_time) {
+	while(steps < max_number_of_steps && current_time < target_time) {
+		__syncthreads();
+		steps++;
 		float k1, k2, k3, k4, k5, k6;
 		// K1
 		example_f(current_time + h, vector, dimension_id, vector_size, &k1);
-		k1 *= h;
+		k1 = k1 * h;
 		// K2
-		result[max_position * vector_size * simulation_id  + vector_size * position + dimension_id] = vector[dimension_id] + B2 * k1;
+		vector[dimension_id] = vector[dimension_id] + B2 * k1;
 		__syncthreads();
-		example_f(current_time + A2 * h, &(result[max_position * vector_size * simulation_id  + vector_size * position]), dimension_id, vector_size, &k2);
-		k2 *= h;
+		example_f(current_time + A2 * h, vector, dimension_id, vector_size, &k2);
+		k2 = k2 * h;
 		// K3
-		result[max_position * vector_size * simulation_id  + vector_size * position + dimension_id] = vector[dimension_id] + B3 * k1 + C3 * k2;
+		vector[dimension_id] = vector[dimension_id] - B2 * k1 + B3 * k1 + C3 * k2;
 		__syncthreads();
-		example_f(current_time + A3 * h, &(result[max_position * vector_size * simulation_id  + vector_size * position]), dimension_id, vector_size, &k3);		
-		k3 *= h;
+		example_f(current_time + A3 * h, vector, dimension_id, vector_size, &k3);		
+		k3 = k3 * h;
 		// K4
-		result[max_position * vector_size * simulation_id  + vector_size * position + dimension_id] = vector[dimension_id] + B4 * k1 + C4 * k2 + D4 * k3;
+		vector[dimension_id] = vector[dimension_id] - B3 * k1 - C3 * k2 + B4 * k1 + C4 * k2 + D4 * k3;
 		__syncthreads();
-		example_f(current_time + A4 * h, &(result[max_position * vector_size * simulation_id  + vector_size * position]), dimension_id, vector_size, &k4);		
-		k4 *= h;
+		example_f(current_time + A4 * h, vector, dimension_id, vector_size, &k4);		
+		k4 = k4 * h;
 		// K5
-		result[max_position * vector_size * simulation_id  + vector_size * position + dimension_id] = vector[dimension_id] + B5 * k1 + C5 * k2 + D5 * k3 + E5 * k4;
+		vector[dimension_id] = vector[dimension_id] - B4 * k1 - C4 * k2 - D4 * k3 + B5 * k1 + C5 * k2 + D5 * k3 + E5 * k4;
 		__syncthreads();
-		example_f(current_time + A5 * h, &(result[max_position * vector_size * simulation_id  + vector_size * position]), dimension_id, vector_size, &k5);
-		k5 *= h;
+		example_f(current_time + A5 * h, vector, dimension_id, vector_size, &k5);
+		k5 = k5 * h;
+		// K6
+		vector[dimension_id] = vector[dimension_id] - B5 * k1 - C5 * k2 - D5 * k3 - E5 * k4 + B6 * k1 + C6 * k2 + D6 * k3 + E6 * k4 + F6 * k5;
+		__syncthreads();	
+		example_f(current_time + A6 * h, vector, dimension_id, vector_size, &k6);
+		k6 = k6 * h;
 
-		// result
-		result[max_position * vector_size * simulation_id  + vector_size * position + dimension_id] = vector[dimension_id] + N1 * k1 + N3 * k3 + N4 * k4 + N5 * k5;
-		
-		// update time and position
-		vector = &(result[max_position * vector_size * simulation_id  + vector_size * position]);
-		current_time += h;
-		position++;
+		// reset vector
+		__syncthreads();
+		vector[dimension_id] = vector[dimension_id] - B6 * k1 - C6 * k2 - D6 * k3 - E6 * k4 - F6 * k5;
+		__syncthreads();
+
+		// error
+		float error = abs(R1 * k1 + R3 * k3 + R4 * k4 + R5 * k5 + R6 * k6);
+		result[max_position * vector_size * simulation_id  + vector_size * (position+1) + dimension_id] = error;
+		__syncthreads();
+		error = 0;
+		for (int i=0; i<vector_size; i++) {
+			if (result[max_position * vector_size * simulation_id  + vector_size * (position+1) + i] > error) {
+				error = result[max_position * vector_size * simulation_id  + vector_size * (position+1) + i];
+			}
+		}
+		// check error
+		if (error >= abs_divergency) {
+			// compute a new time step
+			float s = sqrt(sqrt((abs_divergency * h)/(2 * error)));
+			if (s < MINIMUM_SCALAR_TO_OPTIMIZE_STEP) s = MINIMUM_SCALAR_TO_OPTIMIZE_STEP;
+			if (s > MAXIMUM_SCALAR_TO_OPTIMIZE_STEP) s = MAXIMUM_SCALAR_TO_OPTIMIZE_STEP;
+			h = s * h;
+			if (h < MINIMUM_TIME_STEP) h = MINIMUM_TIME_STEP;
+			if (h > MAXIMUM_TIME_STEP) h = MAXIMUM_TIME_STEP;
+		}
+		else {
+			// result
+			vector[dimension_id] = vector[dimension_id] + N1 * k1 + N3 * k3 + N4 * k4 + N5 * k5;
+			// update time step
+			current_time_step += h;
+			if (current_time_step >= time_step) {
+				current_time_step = 0;
+				current_time += time_step;
+				position++;
+				vector = &(result[max_position * vector_size * simulation_id  + vector_size * position]);
+				vector[dimension_id] = result[max_position * vector_size * simulation_id  + vector_size * (position-1)];
+			}
+		}
 	}
+//	result[max_position * vector_size * simulation_id  + vector_size * position + dimension_id] = h;
 	number_of_executed_steps[simulation_id] = position;
+//	number_of_executed_steps[simulation_id] = 10;
 }

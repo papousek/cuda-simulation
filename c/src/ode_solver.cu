@@ -7,8 +7,6 @@
 
 #define BLOCK_SIZE 32
 
-extern void __device__ example_f(const float time, const float* vector, const int index, const int vector_size, float* result);
-
 int 	size;
 int 	maximum_steps;
 float 	step_size;
@@ -158,8 +156,7 @@ void execute() {
 		gpu_init_vectors,
 		size,
 		vector_size,
-		0.001,
-		example_f,
+		0.00001,
 		maximum_steps,
 		gpu_result,
 		gpu_number_of_executed_steps,
@@ -191,6 +188,12 @@ void print_result() {
 		printf("\t\t---------------------------------------------------------\n");
 		printf("\t\t[%i]\n", target);
 		printf("\t\t---------------------------------------------------------\n");	
+		printf("\t\t|");
+		for (int i=0; i<vector_size; i++) {
+			printf(" %4.2f\t|", cpu_init_vectors[simulation_id * vector_size + i]);
+		}
+		printf("\n");
+		printf("\t\t---------------------------------------------------------\n");
 		for (int step = 0; step < target; step++) {
 			printf("\t\t|");
 			for(int dimension = 0; dimension < vector_size; dimension++) {
@@ -206,6 +209,6 @@ int main(int argc, char **argv) {
 	init_data();
 	execute();
 	load_result();
-//	print_result();
+	print_result();
 	clean();
 }
