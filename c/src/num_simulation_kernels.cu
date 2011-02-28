@@ -67,7 +67,7 @@ void __global__ rfk45_kernel(
 	// compute the number of simulations per block
 	__shared__ int simulations_per_block;
 	if (threadIdx.x == 0 && threadIdx.y == 0) {
-		simulations_per_block = blockDim.x * blockDim.y / vector_size;
+		simulations_per_block = (blockDim.x * blockDim.y) / vector_size;
 	}
 	__syncthreads();
 	
@@ -93,7 +93,7 @@ void __global__ rfk45_kernel(
 	// compute max position in time
 	__shared__ int max_position;
 	if (threadIdx.x == 0 && threadIdx.y == 0) {
-		max_position = ceil((target_time - time)/time_step);
+		max_position = ceil((target_time - time)/time_step) + 1;
 	}
 	__syncthreads();
 
@@ -101,7 +101,6 @@ void __global__ rfk45_kernel(
 	float current_time 	= time;
 	int position		= 0;
 	int steps		= 0;
-	float current_time_step	= 0;
 
 	// note the pointer on the vetor
 	float* vector = &(result[max_position * vector_size * simulation_id  + vector_size * position]);
@@ -158,6 +157,7 @@ void __global__ rfk45_kernel(
 				error = result[max_position * vector_size * simulation_id  + vector_size * (position+1) + i];
 			}
 		}
+
 		// check error
 		if (error >= abs_divergency) {
 			// compute a new time step
@@ -172,17 +172,14 @@ void __global__ rfk45_kernel(
 			// result
 			vector[dimension_id] = vector[dimension_id] + N1 * k1 + N3 * k3 + N4 * k4 + N5 * k5;
 			// update time step
-			current_time_step += h;
-			if (current_time_step >= time_step) {
-				current_time_step = 0;
-				current_time += time_step;
+			current_time += h;
+			if (current_time >= time_step * (position+1)) {
 				position++;
 				vector = &(result[max_position * vector_size * simulation_id  + vector_size * position]);
 				vector[dimension_id] = result[max_position * vector_size * simulation_id  + vector_size * (position-1)];
 			}
 		}
 	}
-//	result[max_position * vector_size * simulation_id  + vector_size * position + dimension_id] = h;
 	number_of_executed_steps[simulation_id] = position;
-//	number_of_executed_steps[simulation_id] = 10;
+//	number_of_executed_steps[simulation_id] = 1;
 }

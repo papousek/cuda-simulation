@@ -53,7 +53,7 @@ void print_error(char* content) {
 float* init_increasing_vectors(const unsigned int size) {
 	float* to_return = (float *) malloc(size * sizeof(float));
 	for(int i=0; i<size; i++) {
-		to_return[i] = i+1;
+		to_return[i] = (i+1);
 	}
 	return to_return;
 }
@@ -131,7 +131,7 @@ void init_data() {
 	// memory for computed result
 	print_info("preparing memory for computed resupt on GPU");
 	gpu_result = NULL;
-	cudaMalloc((void**) &gpu_result, vector_size * size * (ceil(target_time/step_size)) * sizeof(float));
+	cudaMalloc((void**) &gpu_result, vector_size * size * (ceil(target_time/step_size) + 2) * sizeof(float));
 	// number of executed steps
 	print_info("preparing memory for number of executed steps on GPU");
 	gpu_number_of_executed_steps = NULL;	
@@ -168,11 +168,11 @@ void execute() {
 void load_result() {
 	print_info("loading computed result");
 
-	cpu_result = (float*) malloc(vector_size * size * (ceil(target_time/step_size)) * sizeof(float));
+	cpu_result = (float*) malloc(vector_size * size * (ceil(target_time/step_size) + 1) * sizeof(float));
 	cpu_number_of_executed_steps = (int*) malloc(size * sizeof(int));
 	cpu_return_code = (int*) malloc(size * sizeof(int));
 
-	cudaMemcpy(cpu_result, gpu_result, vector_size * size * (ceil(target_time/step_size)) * sizeof(float), cudaMemcpyDeviceToHost);
+	cudaMemcpy(cpu_result, gpu_result, vector_size * size * (ceil(target_time/step_size) + 1) * sizeof(float), cudaMemcpyDeviceToHost);
 	check_cuda_error("copying result failed");
 	cudaMemcpy(cpu_number_of_executed_steps, gpu_number_of_executed_steps, size * sizeof(int), cudaMemcpyDeviceToHost);
 	check_cuda_error("copying number of executed steps failed");
@@ -182,7 +182,7 @@ void load_result() {
 
 void print_result() {
 	print_info("printing result");
-	int max_target = ceil(target_time/step_size);
+	int max_target = ceil(target_time/step_size) + 1;
 	for(int simulation_id = 0; simulation_id < size; simulation_id++) {
 		int target = cpu_number_of_executed_steps[simulation_id];
 		printf("\t\t---------------------------------------------------------\n");
