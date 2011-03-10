@@ -24,8 +24,8 @@ public class CudaSimulationLauncherTest {
 
 	@Test
 	public void simpleTest() {
-		CudaSimulationLauncher launcher = new CudaSimulationLauncher(function);
-		NumericalSimulationResult result = launcher.launch(0, (float) 0.1, 1, new float[] {(float) 1.0 }, 1, 1, 1, 10, 10);
+		CudaSimulationLauncher launcher = new CudaSimulationLauncher(1, 1, 10, function);
+		NumericalSimulationResult result = launcher.launch(0, (float) 0.1, 1, new float[] {(float) 1.0 }, (float) 0.1, 100);
 		for (int i=0; i<result.getNumberOfExecutedSteps(0); i++) {
 			System.out.println(result.getPoint(0, i));
 		}

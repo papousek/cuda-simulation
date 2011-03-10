@@ -26,6 +26,7 @@ public class NumericalSimulationPoint implements Point
 		this.dimension	= dimension;
 		this.data		= data;
 		this.startIndex	= startIndex;
+		this.time		= time;
 	}
 
 	public int getDimension() {
@@ -70,6 +71,7 @@ public class NumericalSimulationPoint implements Point
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
+		builder.append(time + " ");
 		builder.append("[");
 		boolean notFirst = false;
 		for(int i=startIndex; i<startIndex+dimension; i++) {

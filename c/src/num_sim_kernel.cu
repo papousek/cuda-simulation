@@ -119,7 +119,7 @@ void __global__ rkf45_kernel(
 	vector[dimension_id] = vectors[vector_size * simulation_id + dimension_id];
 
 	// perform the simulation
-	while(steps < max_number_of_steps && current_time < target_time) {
+	while(steps < max_number_of_steps && current_time < target_time && position < simulation_max_size) {
 		__syncthreads();
 		steps++;
 		float k1, k2, k3, k4, k5, k6;
@@ -191,5 +191,5 @@ void __global__ rkf45_kernel(
 			}
 		}
 	}
-	number_of_executed_steps[simulation_id] = position;	
+	number_of_executed_steps[simulation_id] = position;
 }
