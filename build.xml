@@ -1,0 +1,56 @@
+<project name="org.sybila.ode" default="main" basedir=".">
+	<property name="java.src.dir" value="java/src"/>
+	<property name="java.build.dir" value="java/build"/>
+	<property name="tests.src.dir" value="tests/src"/>
+	<property name="tests.build.dir" value="tests/build"/>
+	<property name="tests.report.dir" value="tests/report"/>
+	<property name="libs.dir" value="libs"/>
+	<property name="libs.jcuda.dir" value="${libs.dir}/jcuda"/>
+
+	<path id="classpath">
+		<dirset dir="${libs.jcuda.dir}"/>
+		<fileset dir="${libs.jcuda.dir}" includes="*.jar"/>
+		<fileset dir="${libs.dir}" includes="*.jar"/>
+		<dirset dir="${java.build.dir}"/>
+		<dirset dir="${tests.build.dir}"/>
+	</path>
+
+	<target name="init">
+		<mkdir dir="${java.build.dir}"/>
+		<mkdir dir="${tests.report.dir}"/>
+		<mkdir dir="${tests.build.dir}"/>
+	</target>
+
+	<target name="clean">
+		<delete verbose="true">
+			<fileset dir="${java.build.dir}"/>
+			<fileset dir="${tests.build.dir}"/>
+			<fileset dir="${tests.report.dir}"/>
+		</delete>
+	</target>
+
+	<target name="build" depends="init">
+		<javac fork="true" srcdir="${java.src.dir}" destdir="${java.build.dir}" classpathref="classpath" debug="on" debuglevel="lines,source"/>
+	</target>
+
+	<target name="build-tests" depends="build">
+		<javac fork="true" srcdir="${tests.src.dir}" destdir="${tests.build.dir}" classpathref="classpath" debug="on" debuglevel="lines,source"/>
+	</target>
+
+	<target name="test" depends="build-tests">
+		<junit printsummary="no">
+			<formatter type="plain" usefile="false"/>
+			<sysproperty key="java.library.path" value="${libs.jcuda.dir}"/>
+			<classpath>
+				<path refid="classpath"/>
+			</classpath>
+			<batchtest fork="yes">
+				<fileset dir="${tests.build.dir}" includes="**/*Test.class" excludes="**/Abstract*"/>
+			</batchtest>
+		</junit>
+	</target>
+
+	<target name="main" depends="clean, build"/>
+
+
+</project>

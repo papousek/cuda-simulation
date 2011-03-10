@@ -39,19 +39,30 @@
 #define MINIMUM_SCALAR_TO_OPTIMIZE_STEP 0.00001
 #define MAXIMUM_SCALAR_TO_OPTIMIZE_STEP 4.0
 
-#ifndef KERNEL_RETURN_CODES
-#define KERNEL_RETURN_CODES
-#define CODE_TIMEOUT 1
-#define CODE_SUCCESS 2
-#define CODE_PRECISION_FAILED 3
-#endif
-
-inline void __device__ example_f(const float time, const float* vector, const int index, const int vector_size, float* result) {
-	*result = vector[index];
+__device__ void ode_function(
+	const float 	time,
+	const float* 	vector,
+	const int	index,
+	const int	vector_size,
+	const float* 	coefficients,
+	const int*	coefficient_indexes,
+	const int*	factors,
+	const int*	factor_indexes,
+	float*		result
+) {
+	*result = 0;
+	for(int c=coefficient_indexes[index]; c<coefficient_indexes[index+1]; c++) {
+		float aux_result = coefficients[c];
+		for(int f=factor_indexes[c]; f<factor_indexes[c+1]; f++) {
+			aux_result *= vector[factors[f]];
+		}
+		*result += aux_result;
+	}
 }
 
-void __global__ rfk45_kernel(
-	const float time,
+extern "C"
+void __global__ rkf45_kernel(
+	const float 		time,
 	const float 		time_step,
 	const int		target_time,
 	const float*		vectors,
@@ -59,7 +70,13 @@ void __global__ rfk45_kernel(
 	const int		vector_size,
 	const float 		abs_divergency,
 	const int		max_number_of_steps,
-	float* 			result,
+	const int		simulation_max_size,
+	const float* 		function_coefficients,
+	const int*		function_coefficient_indexes,
+	const int*		function_factors,
+	const int*		function_factor_indexes,
+	float* 			result_points,
+	float*			result_times,
 	int*			number_of_executed_steps,
 	int*			return_code
 ) {
@@ -89,21 +106,14 @@ void __global__ rfk45_kernel(
 	// reset number of executed steps and set the default time step
 	*number_of_executed_steps = 0;	
 	float h = time_step;
-	
-	// compute max position in time
-	__shared__ int max_position;
-	if (threadIdx.x == 0 && threadIdx.y == 0) {
-		max_position = ceil((target_time - time)/time_step) + 1;
-	}
-	__syncthreads();
 
 	// set current time, position and number of executed steps
 	float current_time 	= time;
 	int position		= 0;
-	int steps		= 0;
 
+	int steps		= 0;
 	// note the pointer on the vetor
-	float* vector = &(result[max_position * vector_size * simulation_id  + vector_size * position]);
+	float* vector = &(result_points[simulation_max_size * vector_size * simulation_id  + vector_size * position]);
 
 	// copy init vector to the result
 	vector[dimension_id] = vectors[vector_size * simulation_id + dimension_id];
@@ -114,32 +124,32 @@ void __global__ rfk45_kernel(
 		steps++;
 		float k1, k2, k3, k4, k5, k6;
 		// K1
-		example_f(current_time + h, vector, dimension_id, vector_size, &k1);
+		ode_function(current_time + h, vector, dimension_id, vector_size, function_coefficients, function_coefficient_indexes, function_factors, function_factor_indexes, &k1);
 		k1 = k1 * h;
 		// K2
 		vector[dimension_id] = vector[dimension_id] + B2 * k1;
 		__syncthreads();
-		example_f(current_time + A2 * h, vector, dimension_id, vector_size, &k2);
+		ode_function(current_time + A2 * h, vector, dimension_id, vector_size, function_coefficients, function_coefficient_indexes, function_factors, function_factor_indexes, &k2);
 		k2 = k2 * h;
 		// K3
 		vector[dimension_id] = vector[dimension_id] - B2 * k1 + B3 * k1 + C3 * k2;
 		__syncthreads();
-		example_f(current_time + A3 * h, vector, dimension_id, vector_size, &k3);		
+		ode_function(current_time + A3 * h, vector, dimension_id, vector_size, function_coefficients, function_coefficient_indexes, function_factors, function_factor_indexes, &k3);		
 		k3 = k3 * h;
 		// K4
 		vector[dimension_id] = vector[dimension_id] - B3 * k1 - C3 * k2 + B4 * k1 + C4 * k2 + D4 * k3;
 		__syncthreads();
-		example_f(current_time + A4 * h, vector, dimension_id, vector_size, &k4);		
+		ode_function(current_time + A4 * h, vector, dimension_id, vector_size, function_coefficients, function_coefficient_indexes, function_factors, function_factor_indexes, &k4);		
 		k4 = k4 * h;
 		// K5
 		vector[dimension_id] = vector[dimension_id] - B4 * k1 - C4 * k2 - D4 * k3 + B5 * k1 + C5 * k2 + D5 * k3 + E5 * k4;
 		__syncthreads();
-		example_f(current_time + A5 * h, vector, dimension_id, vector_size, &k5);
+		ode_function(current_time + A5 * h, vector, dimension_id, vector_size, function_coefficients, function_coefficient_indexes, function_factors, function_factor_indexes, &k5);
 		k5 = k5 * h;
 		// K6
 		vector[dimension_id] = vector[dimension_id] - B5 * k1 - C5 * k2 - D5 * k3 - E5 * k4 + B6 * k1 + C6 * k2 + D6 * k3 + E6 * k4 + F6 * k5;
 		__syncthreads();	
-		example_f(current_time + A6 * h, vector, dimension_id, vector_size, &k6);
+		ode_function(current_time + A6 * h, vector, dimension_id, vector_size, function_coefficients, function_coefficient_indexes, function_factors, function_factor_indexes, &k6);
 		k6 = k6 * h;
 
 		// reset vector
@@ -149,12 +159,12 @@ void __global__ rfk45_kernel(
 
 		// error
 		float error = abs(R1 * k1 + R3 * k3 + R4 * k4 + R5 * k5 + R6 * k6);
-		result[max_position * vector_size * simulation_id  + vector_size * (position+1) + dimension_id] = error;
 		__syncthreads();
+		result_points[simulation_max_size * vector_size * simulation_id  + vector_size * (position+1) + dimension_id] = error;
 		error = 0;
 		for (int i=0; i<vector_size; i++) {
-			if (result[max_position * vector_size * simulation_id  + vector_size * (position+1) + i] > error) {
-				error = result[max_position * vector_size * simulation_id  + vector_size * (position+1) + i];
+			if (result_points[simulation_max_size * vector_size * simulation_id  + vector_size * (position+1) + i] > error) {
+				error = result_points[simulation_max_size * vector_size * simulation_id  + vector_size * (position+1) + i];
 			}
 		}
 
@@ -174,12 +184,12 @@ void __global__ rfk45_kernel(
 			// update time step
 			current_time += h;
 			if (current_time >= time_step * (position+1)) {
+				result_times[position * number_of_vectors + simulation_id] = current_time;
 				position++;
-				vector = &(result[max_position * vector_size * simulation_id  + vector_size * position]);
-				vector[dimension_id] = result[max_position * vector_size * simulation_id  + vector_size * (position-1)];
+				vector = &(result_points[simulation_max_size * vector_size * simulation_id  + vector_size * position]);
+				vector[dimension_id] = result_points[simulation_max_size * vector_size * simulation_id  + vector_size * (position-1)];
 			}
 		}
 	}
-	number_of_executed_steps[simulation_id] = position;
-//	number_of_executed_steps[simulation_id] = 1;
+	number_of_executed_steps[simulation_id] = position;	
 }
