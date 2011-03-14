@@ -1,10 +1,16 @@
-package org.sybila.ode;
+package org.sybila.ode.cuda;
 
-public class MultiAffineFunction {
+import org.sybila.ode.Point;
+
+public class MultiAffineFunction
+{
 
 	private float[] coefficients;
+
 	private int[] coefficientIndexes;
+
 	private int[] factors;
+
 	private int[] factorIndexes;
 
 	public MultiAffineFunction(float[] coefficients, int[] coefficientIndexes, int[] factors, int[] factorIndexes) {
@@ -25,19 +31,7 @@ public class MultiAffineFunction {
 		this.factors = factors;
 		this.factorIndexes = factorIndexes;
 	}
-
-	public float compute(int dimension, Point point) {
-		float result = 0;
-		for (int c = coefficientIndexes[dimension]; c < coefficientIndexes[dimension + 1]; c++) {
-			float auxResult = coefficients[c];
-			for (int f = factorIndexes[c]; f < factorIndexes[c + 1]; f++) {
-				auxResult *= point.getValue(factors[f]);
-			}
-			result += auxResult;
-		}
-		return result;
-	}
-
+	
 	public int[] getCoefficientIndexes() {
 		return coefficientIndexes;
 	}
@@ -53,4 +47,6 @@ public class MultiAffineFunction {
 	public int[] getFactors() {
 		return factors;
 	}
+	
+
 }

@@ -1,6 +1,8 @@
 package org.sybila.ode.cuda;
 
-public class Point implements org.sybila.ode.Point
+import org.sybila.ode.Point;
+
+public class NumericalSimulationPoint implements Point
 {
 
 	private int dimension;
@@ -11,7 +13,7 @@ public class Point implements org.sybila.ode.Point
 
 	private float time;
 
-	public Point(int dimension, int startIndex, float[] data, float time) {
+	public NumericalSimulationPoint(int dimension, int startIndex, float[] data, float time) {
 		if (dimension <= 0) {
 			throw new IllegalArgumentException("The dimension of the point has to be a positive number.");
 		}
@@ -37,7 +39,7 @@ public class Point implements org.sybila.ode.Point
 
 	public float getValue(int index) {
 		if (index < 0 || index >= dimension) {
-			throw new IndexOutOfBoundsException("The index [" + index + "] is out of the range [0," + dimension + "].");
+			throw new IndexOutOfBoundsException("The index [" + startIndex + "] is out of the range [0," + dimension + "].");
 		}
 		return data[startIndex + index];
 	}

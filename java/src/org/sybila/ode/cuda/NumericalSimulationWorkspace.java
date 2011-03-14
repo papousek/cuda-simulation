@@ -1,6 +1,5 @@
 package org.sybila.ode.cuda;
 
-import org.sybila.ode.MultiAffineFunction;
 import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.driver.CUdeviceptr;
@@ -11,19 +10,33 @@ import jcuda.runtime.cudaStream_t;
 public class NumericalSimulationWorkspace {
 
 	private MultiAffineFunction function;
+
 	private boolean initialized = false;
+
 	private int maxSimulationSize;
+
 	private int numberOfSimulations;
+
 	private int vectorSize;
+
 	private cudaStream_t stream;
+
 	private CUdeviceptr functionCoefficients;
+
 	private CUdeviceptr functionCoefficientIndexes;
+
 	private CUdeviceptr functionFactors;
+
 	private CUdeviceptr functionFactorIndexes;
+
 	private CUdeviceptr vectors;
+
 	private CUdeviceptr resultPoints;
+
 	private CUdeviceptr resultTimes;
+
 	private CUdeviceptr returnCodes;
+
 	private CUdeviceptr executedSteps;
 
 	public NumericalSimulationWorkspace(int vectorSize, int numberOfSimulations, int maxSimulationSize, MultiAffineFunction function, cudaStream_t stream) {
@@ -47,10 +60,10 @@ public class NumericalSimulationWorkspace {
 		if (function == null) {
 			throw new NullPointerException("The parameter [function] is NULL.");
 		}
-		this.vectorSize = vectorSize;
-		this.maxSimulationSize = maxSimulationSize;
-		this.numberOfSimulations = numberOfSimulations;
-		this.function = function;
+		this.vectorSize				= vectorSize;
+		this.maxSimulationSize		= maxSimulationSize;
+		this.numberOfSimulations	= numberOfSimulations;
+		this.function				= function;
 	}
 
 	public Pointer getDeviceExecutedSteps() {
@@ -110,19 +123,19 @@ public class NumericalSimulationWorkspace {
 		return numberOfSimulations;
 	}
 
-	public SimulationResult getResult() {
+	public NumericalSimulationResult getResult() {
 		initPointers();
-		int[] numberOfExecutedStepsHost = new int[numberOfSimulations];
-		int[] returnCodesHost = new int[numberOfSimulations];
-		float[] simulationTimesHost = new float[numberOfSimulations * maxSimulationSize];
-		float[] simulationPointsHost = new float[numberOfSimulations * vectorSize * maxSimulationSize];
-
+		int[] numberOfExecutedStepsHost	= new int[numberOfSimulations];
+		int[] returnCodesHost			= new int[numberOfSimulations];
+		float[] simulationTimesHost		= new float[numberOfSimulations * maxSimulationSize];
+		float[] simulationPointsHost	= new float[numberOfSimulations * vectorSize * maxSimulationSize];
+		
 		copyDeviceToHost(Pointer.to(numberOfExecutedStepsHost), executedSteps, numberOfSimulations * Sizeof.INT);
 		copyDeviceToHost(Pointer.to(returnCodesHost), returnCodes, numberOfSimulations * Sizeof.INT);
 		copyDeviceToHost(Pointer.to(simulationTimesHost), resultTimes, simulationTimesHost.length * Sizeof.FLOAT);
 		copyDeviceToHost(Pointer.to(simulationPointsHost), resultPoints, numberOfSimulations * maxSimulationSize * vectorSize * Sizeof.FLOAT);
 
-		return new SimulationResult(numberOfSimulations, vectorSize, numberOfExecutedStepsHost, returnCodesHost, simulationTimesHost, simulationPointsHost);
+		return new NumericalSimulationResult(numberOfSimulations, vectorSize, numberOfExecutedStepsHost, returnCodesHost, simulationTimesHost, simulationPointsHost);
 	}
 
 	public int getVectorSize() {
@@ -157,16 +170,16 @@ public class NumericalSimulationWorkspace {
 			return;
 		}
 		initialized = true;
-		vectors = new CUdeviceptr();
-		resultPoints = new CUdeviceptr();
-		resultTimes = new CUdeviceptr();
-		returnCodes = new CUdeviceptr();
-		executedSteps = new CUdeviceptr();
+		vectors			= new CUdeviceptr();
+		resultPoints	= new CUdeviceptr();
+		resultTimes		= new CUdeviceptr();
+		returnCodes		= new CUdeviceptr();
+		executedSteps	= new CUdeviceptr();
 
-		functionCoefficients = new CUdeviceptr();
-		functionCoefficientIndexes = new CUdeviceptr();
-		functionFactors = new CUdeviceptr();
-		functionFactorIndexes = new CUdeviceptr();
+		functionCoefficients		= new CUdeviceptr();
+		functionCoefficientIndexes	= new CUdeviceptr();
+		functionFactors				= new CUdeviceptr();
+		functionFactorIndexes		= new CUdeviceptr();
 
 		JCuda.cudaMalloc(vectors, numberOfSimulations * vectorSize * Sizeof.FLOAT);
 		JCuda.cudaMalloc(resultPoints, (maxSimulationSize + 1) * numberOfSimulations * vectorSize * Sizeof.FLOAT);
@@ -188,7 +201,8 @@ public class NumericalSimulationWorkspace {
 	private void copyDeviceToHost(Pointer hostPointer, Pointer devicePointer, int size) {
 		if (stream == null) {
 			JCuda.cudaMemcpy(hostPointer, devicePointer, size, cudaMemcpyKind.cudaMemcpyDeviceToHost);
-		} else {
+		}
+		else {
 			JCuda.cudaMemcpyAsync(hostPointer, devicePointer, size, cudaMemcpyKind.cudaMemcpyDeviceToHost, stream);
 		}
 	}
@@ -196,8 +210,10 @@ public class NumericalSimulationWorkspace {
 	private void copyHostToDevice(Pointer devicePointer, Pointer hostPointer, int size) {
 		if (stream == null) {
 			JCuda.cudaMemcpy(devicePointer, hostPointer, size, cudaMemcpyKind.cudaMemcpyHostToDevice);
-		} else {
+		}
+		else {
 			JCuda.cudaMemcpyAsync(devicePointer, hostPointer, size, cudaMemcpyKind.cudaMemcpyHostToDevice, stream);
 		}
 	}
+
 }
