@@ -179,11 +179,11 @@ public class NumericalSimulationWorkspace {
 		JCuda.cudaMalloc(functionFactors, function.getFactors().length * Sizeof.INT);
 		JCuda.cudaMalloc(functionFactorIndexes, function.getFactorIndexes().length * Sizeof.INT);
 
-/*		copyHostToDevicConst("function_coefficients", Pointer.to(function.getCoefficients()), Sizeof.FLOAT * function.getCoefficients().length, 0);
-		copyHostToDevicConst("function_coefficient_indexes", Pointer.to(function.getCoefficientIndexes()), Sizeof.INT * function.getCoefficientIndexes().length, 0);
-		copyHostToDevicConst("function_factors", Pointer.to(function.getFactors()), Sizeof.INT * function.getFactors().length, 0);
-		copyHostToDevicConst("function_factor_indexes", Pointer.to(function.getFactorIndexes()), Sizeof.INT * function.getFactorIndexes().length, 0);
-*/	}
+		copyHostToDevice(functionCoefficients, Pointer.to(function.getCoefficients()), function.getCoefficients().length * Sizeof.FLOAT);
+		copyHostToDevice(functionCoefficientIndexes, Pointer.to(function.getCoefficientIndexes()), function.getCoefficientIndexes().length * Sizeof.INT);
+		copyHostToDevice(functionFactors, Pointer.to(function.getFactors()), function.getFactors().length * Sizeof.INT);
+		copyHostToDevice(functionFactorIndexes, Pointer.to(function.getFactorIndexes()), function.getFactorIndexes().length * Sizeof.INT);
+	}
 
 	private void copyDeviceToHost(Pointer hostPointer, Pointer devicePointer, int size) {
 		if (stream == null) {
@@ -198,15 +198,6 @@ public class NumericalSimulationWorkspace {
 			JCuda.cudaMemcpy(devicePointer, hostPointer, size, cudaMemcpyKind.cudaMemcpyHostToDevice);
 		} else {
 			JCuda.cudaMemcpyAsync(devicePointer, hostPointer, size, cudaMemcpyKind.cudaMemcpyHostToDevice, stream);
-		}
-	}
-
-	private void copyHostToDevicConst(String deviceConstant, Pointer hostPointer, int size, int offset) {
-		if (stream == null) {
-			JCuda.cudaMemcpyToSymbol(deviceConstant, hostPointer, size, offset, cudaMemcpyKind.cudaMemcpyHostToDevice);
-		}
-		else {
-			JCuda.cudaMemcpyToSymbolAsync(deviceConstant, hostPointer, size, offset, cudaMemcpyKind.cudaMemcpyHostToDevice, stream);
 		}
 	}
 }
