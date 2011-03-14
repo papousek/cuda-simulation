@@ -1,5 +1,6 @@
 package org.sybila.ode.cuda;
 
+import org.sybila.ode.MultiAffineFunction;
 import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.driver.CUdeviceptr;
@@ -7,7 +8,7 @@ import jcuda.runtime.JCuda;
 import jcuda.runtime.cudaMemcpyKind;
 import jcuda.runtime.cudaStream_t;
 
-public class NumericalSimulationWorkspace {
+public class SimulationWorkspace {
 
 	private MultiAffineFunction function;
 
@@ -39,7 +40,7 @@ public class NumericalSimulationWorkspace {
 
 	private CUdeviceptr executedSteps;
 
-	public NumericalSimulationWorkspace(int vectorSize, int numberOfSimulations, int maxSimulationSize, MultiAffineFunction function, cudaStream_t stream) {
+	public SimulationWorkspace(int vectorSize, int numberOfSimulations, int maxSimulationSize, MultiAffineFunction function, cudaStream_t stream) {
 		this(vectorSize, numberOfSimulations, maxSimulationSize, function);
 		if (stream == null) {
 			throw new NullPointerException("The parameter [stream] is NULL.");
@@ -47,7 +48,7 @@ public class NumericalSimulationWorkspace {
 		this.stream = stream;
 	}
 
-	public NumericalSimulationWorkspace(int vectorSize, int numberOfSimulations, int maxSimulationSize, MultiAffineFunction function) {
+	public SimulationWorkspace(int vectorSize, int numberOfSimulations, int maxSimulationSize, MultiAffineFunction function) {
 		if (vectorSize <= 0) {
 			throw new IllegalArgumentException("The parameter [vectorSize] has to be a positive number.");
 		}
@@ -123,7 +124,7 @@ public class NumericalSimulationWorkspace {
 		return numberOfSimulations;
 	}
 
-	public NumericalSimulationResult getResult() {
+	public SimulationResult getResult() {
 		initPointers();
 		int[] numberOfExecutedStepsHost	= new int[numberOfSimulations];
 		int[] returnCodesHost			= new int[numberOfSimulations];
@@ -135,7 +136,11 @@ public class NumericalSimulationWorkspace {
 		copyDeviceToHost(Pointer.to(simulationTimesHost), resultTimes, simulationTimesHost.length * Sizeof.FLOAT);
 		copyDeviceToHost(Pointer.to(simulationPointsHost), resultPoints, numberOfSimulations * maxSimulationSize * vectorSize * Sizeof.FLOAT);
 
-		return new NumericalSimulationResult(numberOfSimulations, vectorSize, numberOfExecutedStepsHost, returnCodesHost, simulationTimesHost, simulationPointsHost);
+//		for(int i=0; i<returnCodesHost.length; i++) {
+//			System.out.println(returnCodesHost[i]);
+//		}
+
+		return new SimulationResult(numberOfSimulations, vectorSize, numberOfExecutedStepsHost, returnCodesHost, simulationTimesHost, simulationPointsHost);
 	}
 
 	public int getVectorSize() {

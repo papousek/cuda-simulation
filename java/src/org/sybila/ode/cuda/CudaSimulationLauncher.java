@@ -1,9 +1,13 @@
 package org.sybila.ode.cuda;
 
+import org.sybila.ode.MultiAffineFunction;
 import java.io.File;
 import jcuda.utils.KernelLauncher;
+import org.sybila.ode.SimulationLauncher;
+import org.sybila.ode.SimulationResult;
 
-public class CudaSimulationLauncher {
+public class CudaSimulationLauncher implements SimulationLauncher
+{
 
 	private static final int BLOCK_SIZE = 32;
 
@@ -11,13 +15,13 @@ public class CudaSimulationLauncher {
 
 	private static final String KERNEL_NAME = "rkf45_kernel";
 
-	private NumericalSimulationWorkspace workspace;
+	private SimulationWorkspace workspace;
 
 	public CudaSimulationLauncher (int vectorSize, int numberOfSimulations, int maxNumberOfExecutedSteps, MultiAffineFunction function) {
-		workspace = new NumericalSimulationWorkspace(vectorSize, numberOfSimulations, maxNumberOfExecutedSteps, function);
+		workspace = new SimulationWorkspace(vectorSize, numberOfSimulations, maxNumberOfExecutedSteps, function);
 	}
 
-	public NumericalSimulationResult launch(
+	public SimulationResult launch(
 		float	time,
 		float	timeStep,
 		float	targetTime,

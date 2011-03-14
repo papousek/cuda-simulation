@@ -1,8 +1,6 @@
 package org.sybila.ode.cuda;
 
-import org.sybila.ode.Point;
-
-public class NumericalSimulationPoint implements Point
+public class Point implements org.sybila.ode.Point
 {
 
 	private int dimension;
@@ -13,7 +11,7 @@ public class NumericalSimulationPoint implements Point
 
 	private float time;
 
-	public NumericalSimulationPoint(int dimension, int startIndex, float[] data, float time) {
+	public Point(int dimension, int startIndex, float[] data, float time) {
 		if (dimension <= 0) {
 			throw new IllegalArgumentException("The dimension of the point has to be a positive number.");
 		}

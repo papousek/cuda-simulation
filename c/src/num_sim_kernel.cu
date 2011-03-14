@@ -39,6 +39,9 @@
 #define MINIMUM_SCALAR_TO_OPTIMIZE_STEP 0.00001
 #define MAXIMUM_SCALAR_TO_OPTIMIZE_STEP 4.0
 
+#define STATUS_OK 0
+#define STATUS_TIMEOUT 1
+
 __device__ void ode_function(
 	const float 	time,
 	const float* 	vector,
@@ -191,5 +194,7 @@ void __global__ rkf45_kernel(
 			}
 		}
 	}
+	if (steps >= max_number_of_steps) return_code[simulation_id] = STATUS_TIMEOUT;
+	else return_code[simulation_id] = STATUS_OK;
 	number_of_executed_steps[simulation_id] = position;
 }
