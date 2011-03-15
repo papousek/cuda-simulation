@@ -12,6 +12,7 @@ public enum SimulationStatus
 			case 1:
 				return TIMEOUT;
 			default:
+				//return null;
 				throw new IllegalStateException("There is no status corresponding to the number [" + status + "].");
 		}
 	}

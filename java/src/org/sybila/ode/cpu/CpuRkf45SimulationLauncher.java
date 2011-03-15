@@ -135,7 +135,6 @@ public class CpuRkf45SimulationLauncher extends AbstractCpuSimulationLauncher
 					data[dim] = data[dim] + N1 * k1[dim] + N3 * k3[dim] + N4 * k4[dim] + N5 * k5[dim];
 				}
 				currentTime += myStep;
-//				previous = new Point(getDimension(), myStep, data);
 				previous = new Point(getDimension(), currentTime, data);
 				if (currentTime >= (position+1) * timeStep) {
 					position++;

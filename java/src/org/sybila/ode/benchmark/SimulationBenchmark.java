@@ -36,7 +36,7 @@ public class SimulationBenchmark {
 		int[] factorIndexes = new int[dimension + 1];
 
 		for (int i = 0; i < coefficients.length; i++) {
-			coefficients[i] = (float) 0.005;
+			coefficients[i] = (float) 1;
 		}
 
 		for (int i = 0; i < coefficientIndexes.length; i++) {
@@ -64,10 +64,6 @@ public class SimulationBenchmark {
 		for(int i=0; i<result.getNumberOfSimulations(); i++) {
 			sumLength += result.getSimulation(i).getLength();
 		}
-		Simulation simulation = result.getSimulation(1);
-//		for(int i=0; i<(simulation.getLength() < 10 ? simulation.getLength() : 10); i++) {
-//			System.out.println(simulation.getPoint(i));
-//		}
 		return new SimulationBenchmarkResult(end - start, sumLength / result.getNumberOfSimulations());
 	}
 

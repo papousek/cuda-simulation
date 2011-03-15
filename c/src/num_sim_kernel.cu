@@ -34,7 +34,7 @@
 #define N4 (2197.0/4104.0)
 #define N5 (-1.0/5.0)
 
-#define MINIMUM_TIME_STEP 0.000001
+#define MINIMUM_TIME_STEP 0.00001
 #define MAXIMUM_TIME_STEP 100
 #define MINIMUM_SCALAR_TO_OPTIMIZE_STEP 0.00001
 #define MAXIMUM_SCALAR_TO_OPTIMIZE_STEP 4.0
@@ -124,6 +124,7 @@ void __global__ rkf45_kernel(
 
 	// perform the simulation
 	while(steps < max_number_of_steps && current_time < target_time && position < simulation_max_size) {
+		__threadfence_block();
 		__syncthreads();
 		steps++;
 		float k1, k2, k3, k4, k5, k6;
@@ -132,45 +133,55 @@ void __global__ rkf45_kernel(
 		k1 = k1 * h;
 		// K2
 		vector[dimension_id] = vector[dimension_id] + B2 * k1;
+		__threadfence_block();
 		__syncthreads();
 		ode_function(current_time + A2 * h, vector, dimension_id, vector_size, function_coefficients, function_coefficient_indexes, function_factors, function_factor_indexes, &k2);
 		k2 = k2 * h;
 		// K3
 		vector[dimension_id] = vector[dimension_id] - B2 * k1 + B3 * k1 + C3 * k2;
+		__threadfence_block();
 		__syncthreads();
 		ode_function(current_time + A3 * h, vector, dimension_id, vector_size, function_coefficients, function_coefficient_indexes, function_factors, function_factor_indexes, &k3);		
 		k3 = k3 * h;
 		// K4
 		vector[dimension_id] = vector[dimension_id] - B3 * k1 - C3 * k2 + B4 * k1 + C4 * k2 + D4 * k3;
+		__threadfence_block();
 		__syncthreads();
 		ode_function(current_time + A4 * h, vector, dimension_id, vector_size, function_coefficients, function_coefficient_indexes, function_factors, function_factor_indexes, &k4);		
 		k4 = k4 * h;
 		// K5
 		vector[dimension_id] = vector[dimension_id] - B4 * k1 - C4 * k2 - D4 * k3 + B5 * k1 + C5 * k2 + D5 * k3 + E5 * k4;
+		__threadfence_block();
 		__syncthreads();
 		ode_function(current_time + A5 * h, vector, dimension_id, vector_size, function_coefficients, function_coefficient_indexes, function_factors, function_factor_indexes, &k5);
 		k5 = k5 * h;
 		// K6
 		vector[dimension_id] = vector[dimension_id] - B5 * k1 - C5 * k2 - D5 * k3 - E5 * k4 + B6 * k1 + C6 * k2 + D6 * k3 + E6 * k4 + F6 * k5;
-		__syncthreads();	
+		__threadfence_block();	
+		__syncthreads();
 		ode_function(current_time + A6 * h, vector, dimension_id, vector_size, function_coefficients, function_coefficient_indexes, function_factors, function_factor_indexes, &k6);
 		k6 = k6 * h;
 
 		// reset vector
+		__threadfence_block();
 		__syncthreads();
 		vector[dimension_id] = vector[dimension_id] - B6 * k1 - C6 * k2 - D6 * k3 - E6 * k4 - F6 * k5;
+		__threadfence_block();
 		__syncthreads();
 
 		// error
 		float error = abs(R1 * k1 + R3 * k3 + R4 * k4 + R5 * k5 + R6 * k6);
 		__syncthreads();
 		result_points[(simulation_max_size + 1) * vector_size * simulation_id  + vector_size * (position+1) + dimension_id] = error;
+		__threadfence_block();
+		__syncthreads();
 		error = 0;
 		for (int i=0; i<vector_size; i++) {
 			if (result_points[(simulation_max_size + 1) * vector_size * simulation_id  + vector_size * (position+1) + i] > error) {
 				error = result_points[(simulation_max_size + 1) * vector_size * simulation_id  + vector_size * (position+1) + i];
 			}
 		}
+		__syncthreads();
 
 		// check error
 		if (error >= abs_divergency) {
@@ -188,7 +199,6 @@ void __global__ rkf45_kernel(
 			// update time step
 			current_time += h;
 			if (current_time >= time_step * (position+1)) {
-//				result_times[simulation_id * simulation_max_size + position] = steps;
 				result_times[simulation_id * simulation_max_size + position] = current_time;
 				position++;
 				vector = &(result_points[(simulation_max_size + 1) * vector_size * simulation_id  + vector_size * position]);
