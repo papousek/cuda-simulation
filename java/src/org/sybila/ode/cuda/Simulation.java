@@ -75,7 +75,7 @@ public class Simulation implements org.sybila.ode.Simulation
 		if (step < 0 || step >= getLength()) {
 			throw new IllegalArgumentException("The parameter [step] is out of the range [0, " + (getLength() - 1) + "].");
 		}
-		return new org.sybila.ode.cuda.Point(dimension, maxLength * dimension * id + dimension * step, data, times[id * maxLength + step]);
+		return new org.sybila.ode.cuda.Point(dimension, (maxLength + 1) * dimension * id + dimension * step, data, times[id * maxLength + step]);
 	}
 
 	public SimulationStatus getStatus() {

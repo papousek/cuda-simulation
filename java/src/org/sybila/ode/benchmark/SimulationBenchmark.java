@@ -64,10 +64,10 @@ public class SimulationBenchmark {
 		for(int i=0; i<result.getNumberOfSimulations(); i++) {
 			sumLength += result.getSimulation(i).getLength();
 		}
-		Simulation simulation = result.getSimulation(0);
-		for(int i=0; i<10; i++) {
-			System.out.println(simulation.getPoint(i));
-		}
+		Simulation simulation = result.getSimulation(1);
+//		for(int i=0; i<(simulation.getLength() < 10 ? simulation.getLength() : 10); i++) {
+//			System.out.println(simulation.getPoint(i));
+//		}
 		return new SimulationBenchmarkResult(end - start, sumLength / result.getNumberOfSimulations());
 	}
 

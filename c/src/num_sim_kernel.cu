@@ -117,7 +117,7 @@ void __global__ rkf45_kernel(
 
 	int steps		= 0;
 	// note the pointer on the vetor
-	float* vector = &(result_points[simulation_max_size * vector_size * simulation_id  + vector_size * position]);
+	float* vector = &(result_points[(simulation_max_size + 1) * vector_size * simulation_id  + vector_size * position]);
 
 	// copy init vector to the result
 	vector[dimension_id] = vectors[vector_size * simulation_id + dimension_id];
@@ -164,11 +164,11 @@ void __global__ rkf45_kernel(
 		// error
 		float error = abs(R1 * k1 + R3 * k3 + R4 * k4 + R5 * k5 + R6 * k6);
 		__syncthreads();
-		result_points[simulation_max_size * vector_size * simulation_id  + vector_size * (position+1) + dimension_id] = error;
+		result_points[(simulation_max_size + 1) * vector_size * simulation_id  + vector_size * (position+1) + dimension_id] = error;
 		error = 0;
 		for (int i=0; i<vector_size; i++) {
-			if (result_points[simulation_max_size * vector_size * simulation_id  + vector_size * (position+1) + i] > error) {
-				error = result_points[simulation_max_size * vector_size * simulation_id  + vector_size * (position+1) + i];
+			if (result_points[(simulation_max_size + 1) * vector_size * simulation_id  + vector_size * (position+1) + i] > error) {
+				error = result_points[(simulation_max_size + 1) * vector_size * simulation_id  + vector_size * (position+1) + i];
 			}
 		}
 
@@ -188,10 +188,11 @@ void __global__ rkf45_kernel(
 			// update time step
 			current_time += h;
 			if (current_time >= time_step * (position+1)) {
+//				result_times[simulation_id * simulation_max_size + position] = steps;
 				result_times[simulation_id * simulation_max_size + position] = current_time;
 				position++;
-				vector = &(result_points[simulation_max_size * vector_size * simulation_id  + vector_size * position]);
-				vector[dimension_id] = result_points[simulation_max_size * vector_size * simulation_id  + vector_size * (position-1)];
+				vector = &(result_points[(simulation_max_size + 1) * vector_size * simulation_id  + vector_size * position]);
+				vector[dimension_id] = result_points[(simulation_max_size + 1) * vector_size * simulation_id  + vector_size * (position-1)];
 			}
 		}
 	}

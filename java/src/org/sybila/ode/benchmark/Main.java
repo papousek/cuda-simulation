@@ -9,7 +9,7 @@ import org.sybila.ode.cuda.CudaSimulationLauncher;
 public class Main {
 
 	private static final int DIMENSION = 20;
-	private static final int MAX_NUMBER_OF_SIMULATIONS = 500;
+	private static final int MAX_NUMBER_OF_SIMULATIONS = 100;
 	private static final int MIN_NUMBER_OF_SIMULATIONS = 100;
 	private static final int NUMBER_OF_SIMULATIONS_STEP = 100;
 	private static final int SIMULATION_LENGTH = 1000;
