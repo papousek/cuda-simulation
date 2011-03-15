@@ -40,7 +40,9 @@ public class CudaSimulationLauncher implements SimulationLauncher
 
 		// run kernel
 		KernelLauncher launcher = KernelLauncher.load(KERNEL_FILE, KERNEL_NAME);
-		int gridDim = (int) Math.ceil(Math.sqrt( workspace.getMaxNumberOfSimulations() / (BLOCK_SIZE * workspace.getDimension()))) + 1;
+		int gridDim = (int) Math.ceil(Math.sqrt((float) numberOfSimulations / BLOCK_SIZE));
+//		System.out.println("GRID DIM:  [" + gridDim + ", " + gridDim +"]");
+//		System.out.println("BLOCK DIM: [" + BLOCK_SIZE + ", " + workspace.getDimension() +"]");
 		launcher.setGridSize(gridDim, gridDim);
 		launcher.setBlockSize(BLOCK_SIZE, workspace.getDimension(), 1);
 		launcher.call(

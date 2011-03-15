@@ -36,7 +36,7 @@ public class SimulationBenchmark {
 		int[] factorIndexes = new int[dimension + 1];
 
 		for (int i = 0; i < coefficients.length; i++) {
-			coefficients[i] = (float) 1;
+			coefficients[i] = (float) 0.005;
 		}
 
 		for (int i = 0; i < coefficientIndexes.length; i++) {
@@ -58,11 +58,15 @@ public class SimulationBenchmark {
 
 	public SimulationBenchmarkResult bench(SimulationLauncher launcher) {
 		long start = System.nanoTime();
-		SimulationResult result = launcher.launch(0, 1, maxSimulationSize + 1, getVectors(), numberOfSimulations, (float) 0.1, (int) (maxSimulationSize / CpuEulerSimulationLauncher.TIME_STEP));
+		SimulationResult result = launcher.launch(0, 1, maxSimulationSize + 1, getVectors(), numberOfSimulations, (float) 0.01, (int) (maxSimulationSize / CpuEulerSimulationLauncher.TIME_STEP));
 		long end = System.nanoTime();
 		int sumLength = 0;
 		for(int i=0; i<result.getNumberOfSimulations(); i++) {
 			sumLength += result.getSimulation(i).getLength();
+		}
+		Simulation simulation = result.getSimulation(0);
+		for(int i=0; i<10; i++) {
+			System.out.println(simulation.getPoint(i));
 		}
 		return new SimulationBenchmarkResult(end - start, sumLength / result.getNumberOfSimulations());
 	}
@@ -72,7 +76,7 @@ public class SimulationBenchmark {
 			vectors = new float[dimension * numberOfSimulations];
 			for (int sim = 0; sim < numberOfSimulations; sim++) {
 				for (int dim = 0; dim < dimension; dim++) {
-					vectors[dimension * sim + dim] = dim + 1;
+					vectors[dimension * sim + dim] = 1;
 				}
 			}
 		}

@@ -188,7 +188,7 @@ void __global__ rkf45_kernel(
 			// update time step
 			current_time += h;
 			if (current_time >= time_step * (position+1)) {
-				result_times[position * max_number_of_vectors + simulation_id] = current_time;
+				result_times[simulation_id * simulation_max_size + position] = current_time;
 				position++;
 				vector = &(result_points[simulation_max_size * vector_size * simulation_id  + vector_size * position]);
 				vector[dimension_id] = result_points[simulation_max_size * vector_size * simulation_id  + vector_size * (position-1)];

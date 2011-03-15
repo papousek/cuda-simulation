@@ -26,8 +26,8 @@ public class Simulation implements org.sybila.ode.Simulation
 		if (dimension <= 0) {
 			throw new IllegalArgumentException("The size of vector has to be a positive number.");
 		}
-		if (length <= 0) {
-			throw new IllegalArgumentException("The lenght of the simulation has to be a positive number.");
+		if (length < 0) {
+			throw new IllegalArgumentException("The lenght of the simulation has to be a non negative number.");
 		}
 		if (id < 0) {
 			throw new IllegalArgumentException("The simulation ID has to be a non negative number.");
@@ -59,7 +59,12 @@ public class Simulation implements org.sybila.ode.Simulation
 	}
 
 	public Point getLastPoint() {
-		return getPoint(getLength() - 1);
+		if (length != 0) {
+			return getPoint(getLength() - 1);
+		}
+		else {
+			return null;
+		}
 	}
 
 	public int getLength() {
@@ -70,7 +75,7 @@ public class Simulation implements org.sybila.ode.Simulation
 		if (step < 0 || step >= getLength()) {
 			throw new IllegalArgumentException("The parameter [step] is out of the range [0, " + (getLength() - 1) + "].");
 		}
-		return new org.sybila.ode.cuda.Point(dimension, maxLength * dimension * id + dimension * step, data, times[step * numberOfSimulations + id]);
+		return new org.sybila.ode.cuda.Point(dimension, maxLength * dimension * id + dimension * step, data, times[id * maxLength + step]);
 	}
 
 	public SimulationStatus getStatus() {

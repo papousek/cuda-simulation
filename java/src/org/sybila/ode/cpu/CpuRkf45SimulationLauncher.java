@@ -135,21 +135,24 @@ public class CpuRkf45SimulationLauncher extends AbstractCpuSimulationLauncher
 					data[dim] = data[dim] + N1 * k1[dim] + N3 * k3[dim] + N4 * k4[dim] + N5 * k5[dim];
 				}
 				currentTime += myStep;
+//				previous = new Point(getDimension(), myStep, data);
 				previous = new Point(getDimension(), currentTime, data);
 				if (currentTime >= (position+1) * timeStep) {
 					position++;
 					points.add(previous);
 				}
-				if (currentTime >= targetTime) break;
 			}
 			else {
-				float s = (float) Math.sqrt(Math.sqrt((absDivergency * timeStep)/(2 * error)));
+				float s = (float) Math.sqrt(Math.sqrt((absDivergency * myStep)/(2 * error)));
 				if (s < MINIMUM_SCALAR_TO_OPTIMIZE_STEP) s = MINIMUM_SCALAR_TO_OPTIMIZE_STEP;
 				if (s > MAXIMUM_SCALAR_TO_OPTIMIZE_STEP) s = MAXIMUM_SCALAR_TO_OPTIMIZE_STEP;
 				myStep = s * myStep;
 				if (myStep < MINIMUM_TIME_STEP) myStep = MINIMUM_TIME_STEP;
 				if (myStep > MAXIMUM_TIME_STEP) myStep = MAXIMUM_TIME_STEP;
 			}
+
+			if (currentTime >= targetTime) break;
+			if (position >= getMaxSimulationSize()) break;
 		}
 
 		return new org.sybila.ode.cpu.Simulation(getDimension(), points.toArray(new Point[points.size()]), SimulationStatus.OK);

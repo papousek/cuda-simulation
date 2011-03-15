@@ -44,6 +44,7 @@ public class CpuEulerSimulationLauncher extends AbstractCpuSimulationLauncher {
 				points.add(previous);
 			}
 			if (currentTime >= targetTime) break;
+			if (position >= getMaxSimulationSize()) break;
 		}
 		return new org.sybila.ode.cpu.Simulation(getDimension(), points.toArray(new Point[points.size()]), SimulationStatus.OK);
 	}
