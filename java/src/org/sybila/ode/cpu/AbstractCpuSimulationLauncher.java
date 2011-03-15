@@ -6,19 +6,17 @@ import org.sybila.ode.SimulationLauncher;
 abstract public class AbstractCpuSimulationLauncher implements SimulationLauncher
 {
 
-	protected static final float TIME_STEP = (float) 0.001;
-
 	private MultiAffineFunction function;
 	private int maxSimulationSize;
-	private int numberOfSimulations;
+	private int maxNumberOfSimulations;
 	private int dimension;
 
-	public AbstractCpuSimulationLauncher(int dimension, int numberOfSimulations, int maxSimulationSize, MultiAffineFunction function) {
+	public AbstractCpuSimulationLauncher(int dimension, int maxNumberOfSimulations, int maxSimulationSize, MultiAffineFunction function) {
 		if (dimension <= 0) {
-			throw new IllegalArgumentException("The parameter [vectorSize] has to be a positive number.");
+			throw new IllegalArgumentException("The parameter [dimension] has to be a positive number.");
 		}
-		if (numberOfSimulations <= 0) {
-			throw new IllegalArgumentException("The parameter [numberOfSimulations] has to be a positive number.");
+		if (maxNumberOfSimulations <= 0) {
+			throw new IllegalArgumentException("The parameter [maxNumberOfSimulations] has to be a positive number.");
 		}
 		if (maxSimulationSize <= 0) {
 			throw new IllegalArgumentException("The parameter [maxSimulationSize] has to be a positive number.");
@@ -28,7 +26,7 @@ abstract public class AbstractCpuSimulationLauncher implements SimulationLaunche
 		}
 		this.dimension = dimension;
 		this.maxSimulationSize = maxSimulationSize;
-		this.numberOfSimulations = numberOfSimulations;
+		this.maxNumberOfSimulations = maxNumberOfSimulations;
 		this.function = function;
 	}
 
@@ -37,12 +35,13 @@ abstract public class AbstractCpuSimulationLauncher implements SimulationLaunche
 			float timeStep,
 			float targetTime,
 			float[] vectors,
+			int numberOfSimulations,
 			float absDivergency,
 			int maxNumberOfExecutedSteps) {
 
 		org.sybila.ode.Simulation[] simulations = new Simulation[numberOfSimulations];
-		for (int i = 0; i < simulations.length; i++) {
-			simulations[i] = simulate(i, time, timeStep, targetTime, vectors, absDivergency, maxNumberOfExecutedSteps);
+		for (int i = 0; i < numberOfSimulations; i++) {
+			simulations[i] = simulate(i, time, timeStep, targetTime, vectors, numberOfSimulations, absDivergency, maxNumberOfExecutedSteps);
 		}
 		return new org.sybila.ode.cpu.SimulationResult(simulations);
 	}
@@ -53,6 +52,7 @@ abstract public class AbstractCpuSimulationLauncher implements SimulationLaunche
 			float timeStep,
 			float targetTime,
 			float[] vectors,
+			int numberOfSimulations,
 			float absDivergency,
 			int maxNumberOfExecutedSteps);
 
@@ -68,8 +68,8 @@ abstract public class AbstractCpuSimulationLauncher implements SimulationLaunche
 		return maxSimulationSize;
 	}
 
-	protected int getNumberOfSimulations() {
-		return numberOfSimulations;
+	protected int getMaxNumberOfSimulations() {
+		return maxNumberOfSimulations;
 	}
 
 

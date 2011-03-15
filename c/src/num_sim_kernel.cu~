@@ -122,6 +122,8 @@ void __global__ rkf45_kernel(
 	// copy init vector to the result
 	vector[dimension_id] = vectors[vector_size * simulation_id + dimension_id];
 
+	return_code[simulation_id] = simulation_id; return;
+
 	// perform the simulation
 	while(steps < max_number_of_steps && current_time < target_time && position < simulation_max_size) {
 		__syncthreads();

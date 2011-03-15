@@ -8,6 +8,7 @@ public interface SimulationLauncher
 			float timeStep,
 			float targetTime,
 			float[] vectors,
+			int	 numberOfSimulations,
 			float absDivergency,
 			int maxNumberOfExecutedSteps);
 

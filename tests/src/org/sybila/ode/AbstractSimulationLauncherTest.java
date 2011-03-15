@@ -2,46 +2,85 @@ package org.sybila.ode;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.sybila.ode.cpu.CpuEulerSimulationLauncher;
 import static org.junit.Assert.*;
 
 public abstract class AbstractSimulationLauncherTest
 {
 
-    private MultiAffineFunction function;
+	private static final int DIMENSION = 3;
 
-    @Before
-    public void setUp() {
-        function = new MultiAffineFunction(
-                new float[]{(float) 1.0, (float) 1.0, (float) 1.0},
-                new int[]{0, 1, 2, 3},
-                new int[]{0, 0, 0},
-                new int[]{0, 1, 2, 3});
-    }
+	private static final int NUMBER_OF_SIMULATIONS = 100;
+
+	private static final int SIMULATION_LENGTH = 10;
+
+    private static MultiAffineFunction function;
+
+	private static float[] vectors;
 
     @Test
     public void simpleTest() {
-        SimulationLauncher launcher = createLauncher(1, 1, 10, function);
-        SimulationResult result = launcher.launch(0, (float) 0.1, 1, new float[]{(float) 1.0}, (float) 0.1, 100000);
+        SimulationLauncher launcher = createLauncher(DIMENSION, NUMBER_OF_SIMULATIONS, SIMULATION_LENGTH, getFunction());
+        SimulationResult result = launcher.launch(0, 1, SIMULATION_LENGTH, getVectors(), NUMBER_OF_SIMULATIONS, (float) 0.001, (int) (SIMULATION_LENGTH / CpuEulerSimulationLauncher.TIME_STEP) * 10);
         float[] values = new float[] {
-            (float) 1.1051708,
-            (float) 1.2214026,
-            (float) 1.3498586,
-            (float) 1.4918245,
-            (float) 1.648721,
-            (float) 1.8221185,
-            (float) 2.0137525,
-            (float) 2.2255404,
-            (float) 2.4596028,
-            (float) 2.7182815
+            (float) 2.7,
+            (float) 7.6,
+            (float) 20.6,
+            (float) 56.0,
+            (float) 153.0,
+            (float) 414.6,
+            (float) 1126.9,
+            (float) 3064.6,
+            (float) 8325.6,
+            (float) 22621.3
         };
-        assertEquals(1, result.getNumberOfSimulations());
-		assertEquals(10, result.getSimulation(0).getLength());
-        for(int i=0; i<result.getSimulation(0).getLength(); i++) {
+        assertEquals(NUMBER_OF_SIMULATIONS, result.getNumberOfSimulations());
+		assertEquals(SIMULATION_LENGTH, result.getSimulation(0).getLength());
+        for(int i=0; i<result.getSimulation(50).getLength(); i++) {
 //			System.out.println(result.getSimulation(0).getPoint(i));
-            assertEquals(values[i], result.getSimulation(0).getPoint(i).getValue(0), (float) 0.1);
-            assertEquals((float) (0.1 * i + 0.1), result.getSimulation(0).getPoint(i).getTime(), (float) 0.1);
+//            assertEquals(values[i], result.getSimulation(0).getPoint(i).getValue(0), (float) values[i] * 0.1);
+			assertEquals((float) (1 * i + 1), result.getSimulation(0).getPoint(i).getTime(), (float) 1);
         }
     }
+
+	private static MultiAffineFunction getFunction() {
+		if (function == null) {
+			float[] coefficients = new float[DIMENSION];
+			int[] coefficientIndexes = new int[DIMENSION + 1];
+			int[] factors = new int[DIMENSION];
+			int[] factorIndexes = new int[DIMENSION + 1];
+
+			for (int i = 0; i < coefficients.length; i++) {
+				coefficients[i] = (float) 1;
+			}
+
+			for (int i = 0; i < coefficientIndexes.length; i++) {
+				coefficientIndexes[i] = i;
+			}
+
+			for (int i = 0; i < factors.length; i++) {
+				factors[i] = i;
+			}
+
+			for (int i = 0; i < factorIndexes.length; i++) {
+				factorIndexes[i] = i;
+			}
+
+			function = new MultiAffineFunction(coefficients, coefficientIndexes, factors, factorIndexes);
+		}
+		return function;
+	}
+
+	private static float[] getVectors() {
+		if (vectors == null) {
+			vectors = new float[NUMBER_OF_SIMULATIONS * DIMENSION];
+			for(int i=0; i <vectors.length; i++) {
+				vectors[i] = 1;
+			}
+		}
+		return vectors;
+	}
+
 
 	abstract protected SimulationLauncher createLauncher(int dimension, int numberOfSimulations, int maxSimulationSize, MultiAffineFunction function);
 

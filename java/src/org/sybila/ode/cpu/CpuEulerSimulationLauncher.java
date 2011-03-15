@@ -8,8 +8,10 @@ import org.sybila.ode.SimulationStatus;
 public class CpuEulerSimulationLauncher extends AbstractCpuSimulationLauncher {
 
 
-	public CpuEulerSimulationLauncher(int dimension, int numberOfSimulations, int maxSimulationSize, MultiAffineFunction function) {
-		super(dimension, numberOfSimulations, maxSimulationSize, function);
+	public static final float TIME_STEP = (float) 0.01;
+
+	public CpuEulerSimulationLauncher(int dimension, int maxNumberOfSimulations, int maxSimulationSize, MultiAffineFunction function) {
+		super(dimension, maxNumberOfSimulations, maxSimulationSize, function);
 	}
 
 	protected Simulation simulate(
@@ -18,6 +20,7 @@ public class CpuEulerSimulationLauncher extends AbstractCpuSimulationLauncher {
 			float timeStep,
 			float targetTime,
 			float[] vectors,
+			int numberOfSimulations,
 			float absDivergency,
 			int maxNumberOfExecutedSteps) {
 

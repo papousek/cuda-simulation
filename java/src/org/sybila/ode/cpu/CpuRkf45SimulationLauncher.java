@@ -52,12 +52,12 @@ public class CpuRkf45SimulationLauncher extends AbstractCpuSimulationLauncher
 	private static final float MAXIMUM_SCALAR_TO_OPTIMIZE_STEP = (float) 4.0;
 
 
-	public CpuRkf45SimulationLauncher(int dimension, int numberOfSimulations, int maxSimulationSize, MultiAffineFunction function) {
-		super(dimension, numberOfSimulations, maxSimulationSize, function);
+	public CpuRkf45SimulationLauncher(int dimension, int maxNumberOfSimulations, int maxSimulationSize, MultiAffineFunction function) {
+		super(dimension, maxNumberOfSimulations, maxSimulationSize, function);
 	}
 
 	@Override
-	protected Simulation simulate(int simulationId, float time, float timeStep, float targetTime, float[] vectors, float absDivergency, int maxNumberOfExecutedSteps) {
+	protected Simulation simulate(int simulationId, float time, float timeStep, float targetTime, float[] vectors, int numberOfSimulations, float absDivergency, int maxNumberOfExecutedSteps) {
 
 		List<Point> points = new ArrayList<Point>();
 		float[] initData = new float[getDimension()];
