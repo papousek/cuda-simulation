@@ -38,6 +38,18 @@ public class MultiAffineFunction {
 		return result;
 	}
 
+	public float compute(int dimension, float[] data) {
+		float result = 0;
+		for (int c = coefficientIndexes[dimension]; c < coefficientIndexes[dimension + 1]; c++) {
+			float auxResult = coefficients[c];
+			for (int f = factorIndexes[c]; f < factorIndexes[c + 1]; f++) {
+				auxResult *= data[factors[f]];
+			}
+			result += auxResult;
+		}
+		return result;
+	}
+
 	public int[] getCoefficientIndexes() {
 		return coefficientIndexes;
 	}

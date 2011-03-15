@@ -63,4 +63,10 @@ public class CudaSimulationLauncher implements SimulationLauncher
 		return workspace.getResult();
 	}
 
+	public void destroy() {
+		if (workspace == null) {
+			workspace.destroy();
+		}
+	}
+
 }

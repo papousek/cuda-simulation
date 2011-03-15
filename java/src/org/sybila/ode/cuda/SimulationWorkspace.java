@@ -1,10 +1,12 @@
 package org.sybila.ode.cuda;
 
+import jcuda.CudaException;
 import org.sybila.ode.MultiAffineFunction;
 import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.driver.CUdeviceptr;
 import jcuda.runtime.JCuda;
+import jcuda.runtime.cudaError;
 import jcuda.runtime.cudaMemcpyKind;
 import jcuda.runtime.cudaStream_t;
 
@@ -136,10 +138,6 @@ public class SimulationWorkspace {
 		copyDeviceToHost(Pointer.to(simulationTimesHost), resultTimes, simulationTimesHost.length * Sizeof.FLOAT);
 		copyDeviceToHost(Pointer.to(simulationPointsHost), resultPoints, numberOfSimulations * maxSimulationSize * vectorSize * Sizeof.FLOAT);
 
-//		for(int i=0; i<returnCodesHost.length; i++) {
-//			System.out.println(returnCodesHost[i]);
-//		}
-
 		return new SimulationResult(numberOfSimulations, vectorSize, numberOfExecutedStepsHost, returnCodesHost, simulationTimesHost, simulationPointsHost);
 	}
 
@@ -210,6 +208,10 @@ public class SimulationWorkspace {
 		else {
 			JCuda.cudaMemcpyAsync(hostPointer, devicePointer, size, cudaMemcpyKind.cudaMemcpyDeviceToHost, stream);
 		}
+		int error = JCuda.cudaGetLastError();
+		if (error != cudaError.cudaSuccess) {
+			throw new CudaException(JCuda.cudaGetErrorString(error));
+		}
 	}
 
 	private void copyHostToDevice(Pointer devicePointer, Pointer hostPointer, int size) {
@@ -218,6 +220,23 @@ public class SimulationWorkspace {
 		}
 		else {
 			JCuda.cudaMemcpyAsync(devicePointer, hostPointer, size, cudaMemcpyKind.cudaMemcpyHostToDevice, stream);
+		}
+		int error = JCuda.cudaGetLastError();
+		if (error != cudaError.cudaSuccess) {
+			throw new CudaException(JCuda.cudaGetErrorString(error));
+		}
+	}
+
+	private void copyHostToDeviceConstant(String deviceConstant, Pointer hostPointer, int size, int offset) {
+		if (stream == null) {
+			JCuda.cudaMemcpyToSymbol(deviceConstant, hostPointer, size, offset, cudaMemcpyKind.cudaMemcpyHostToDevice);
+		}
+		else {
+			JCuda.cudaMemcpyToSymbolAsync(deviceConstant, hostPointer, size, offset, cudaMemcpyKind.cudaMemcpyHostToDevice, stream);
+		}
+		int error = JCuda.cudaGetLastError();
+		if (error != cudaError.cudaSuccess) {
+			throw new CudaException(JCuda.cudaGetErrorString(error));
 		}
 	}
 

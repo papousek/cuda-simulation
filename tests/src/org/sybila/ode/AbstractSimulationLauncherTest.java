@@ -38,8 +38,8 @@ public abstract class AbstractSimulationLauncherTest
 		assertEquals(10, result.getSimulation(0).getLength());
         for(int i=0; i<result.getSimulation(0).getLength(); i++) {
 //			System.out.println(result.getSimulation(0).getPoint(i));
-            assertEquals(values[i], result.getSimulation(0).getPoint(i).getValue(0), (float) 0.01);
-            assertEquals((float) (0.1 * i + 0.1), result.getSimulation(0).getPoint(i).getTime(), (float) 0.001);
+            assertEquals(values[i], result.getSimulation(0).getPoint(i).getValue(0), (float) 0.1);
+            assertEquals((float) (0.1 * i + 0.1), result.getSimulation(0).getPoint(i).getTime(), (float) 0.1);
         }
     }
 

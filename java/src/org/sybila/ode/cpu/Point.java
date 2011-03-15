@@ -1,5 +1,7 @@
 package org.sybila.ode.cpu;
 
+import java.util.Arrays;
+
 public class Point implements org.sybila.ode.Point
 {
 
@@ -53,6 +55,10 @@ public class Point implements org.sybila.ode.Point
 		}
 		builder.append("]");
 		return builder.toString();
+	}
+
+	public float[] toArray() {
+		return Arrays.copyOf(data, data.length);
 	}
 
 }
