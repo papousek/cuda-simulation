@@ -36,7 +36,7 @@ public class SimulationBenchmark {
 		int[] factorIndexes = new int[dimension + 1];
 
 		for (int i = 0; i < coefficients.length; i++) {
-			coefficients[i] = (float) 1;
+			coefficients[i] = (float) 0.01;
 		}
 
 		for (int i = 0; i < coefficientIndexes.length; i++) {

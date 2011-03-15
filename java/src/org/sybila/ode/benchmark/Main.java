@@ -8,7 +8,7 @@ import org.sybila.ode.cuda.CudaSimulationLauncher;
 
 public class Main {
 
-	private static final int DIMENSION = 20;
+	private static final int DIMENSION = 3;
 	private static final int MAX_NUMBER_OF_SIMULATIONS = 500;
 	private static final int MIN_NUMBER_OF_SIMULATIONS = 100;
 	private static final int NUMBER_OF_SIMULATIONS_STEP = 100;
@@ -19,7 +19,7 @@ public class Main {
 		MultiAffineFunction function = SimulationBenchmark.createFunction(DIMENSION);
 
 		SimulationLauncher[] launchers = new SimulationLauncher[]{
-//			new CpuEulerSimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS, SIMULATION_LENGTH, function),
+			new CpuEulerSimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS, SIMULATION_LENGTH, function),
 			new CpuRkf45SimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS, SIMULATION_LENGTH, function),
 			new CudaSimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS,SIMULATION_LENGTH, function),
 		};
