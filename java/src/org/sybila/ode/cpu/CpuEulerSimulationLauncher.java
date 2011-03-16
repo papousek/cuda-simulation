@@ -5,8 +5,8 @@ import java.util.ArrayList;
 import org.sybila.ode.Simulation;
 import org.sybila.ode.SimulationStatus;
 
-public class CpuEulerSimulationLauncher extends AbstractCpuSimulationLauncher {
-
+public class CpuEulerSimulationLauncher extends AbstractCpuSimulationLauncher
+{
 
 	public static final float TIME_STEP = (float) 0.01;
 
@@ -21,8 +21,7 @@ public class CpuEulerSimulationLauncher extends AbstractCpuSimulationLauncher {
 			float targetTime,
 			float[] vectors,
 			int numberOfSimulations,
-			float absDivergency,
-			int maxNumberOfExecutedSteps) {
+			float absDivergency) {
 
 		ArrayList<Point> points = new ArrayList<Point>();
 		float[] initData = new float[getDimension()];
@@ -32,7 +31,7 @@ public class CpuEulerSimulationLauncher extends AbstractCpuSimulationLauncher {
 		Point previous = new Point(getDimension(), time, initData);
 		float currentTime = time;
 		int position = 0;
-		for (int step=0; step<maxNumberOfExecutedSteps; step++) {
+		for (int step=0; step<MAX_NUMBER_OF_EXECUTED_STEPS; step++) {
 			currentTime += TIME_STEP;
 			float[] data = new float[getDimension()];
 			for(int dim=0; dim<getDimension(); dim++) {

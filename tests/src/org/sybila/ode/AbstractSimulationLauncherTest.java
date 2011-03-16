@@ -21,7 +21,7 @@ public abstract class AbstractSimulationLauncherTest
     @Test
     public void simpleTest() {
         SimulationLauncher launcher = createLauncher(DIMENSION, NUMBER_OF_SIMULATIONS, SIMULATION_LENGTH, getFunction());
-        SimulationResult result = launcher.launch(0, 1, SIMULATION_LENGTH, getVectors(), NUMBER_OF_SIMULATIONS, (float) 0.001, (int) (SIMULATION_LENGTH / CpuEulerSimulationLauncher.TIME_STEP) * 10);
+        SimulationResult result = launcher.launch(0, 1, SIMULATION_LENGTH, getVectors(), NUMBER_OF_SIMULATIONS, (float) 0.001);
         float[] values = new float[] {
             (float) 2.7,
             (float) 7.6,

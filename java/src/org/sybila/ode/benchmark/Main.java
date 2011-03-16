@@ -4,7 +4,7 @@ import org.sybila.ode.MultiAffineFunction;
 import org.sybila.ode.SimulationLauncher;
 import org.sybila.ode.cpu.CpuEulerSimulationLauncher;
 import org.sybila.ode.cpu.CpuRkf45SimulationLauncher;
-import org.sybila.ode.cuda.CudaSimulationLauncher;
+import org.sybila.ode.cuda.CudaRkf45SimulationLauncher;
 
 public class Main {
 
@@ -21,7 +21,7 @@ public class Main {
 		SimulationLauncher[] launchers = new SimulationLauncher[]{
 			new CpuEulerSimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS, SIMULATION_LENGTH, function),
 			new CpuRkf45SimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS, SIMULATION_LENGTH, function),
-			new CudaSimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS,SIMULATION_LENGTH, function),
+			new CudaRkf45SimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS,SIMULATION_LENGTH, function),
 		};
 
 		for (int numberOfSimulations = MIN_NUMBER_OF_SIMULATIONS; numberOfSimulations <= MAX_NUMBER_OF_SIMULATIONS; numberOfSimulations += NUMBER_OF_SIMULATIONS_STEP) {

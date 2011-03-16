@@ -9,7 +9,6 @@ public interface SimulationLauncher
 			float targetTime,
 			float[] vectors,
 			int	 numberOfSimulations,
-			float absDivergency,
-			int maxNumberOfExecutedSteps);
+			float absDivergency);
 
 }

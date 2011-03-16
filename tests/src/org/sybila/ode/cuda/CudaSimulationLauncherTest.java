@@ -13,7 +13,7 @@ public class CudaSimulationLauncherTest extends AbstractSimulationLauncherTest
 
 	@Override
 	protected SimulationLauncher createLauncher(int dimension, int numberOfSimulations, int maxSimulationSize, MultiAffineFunction function) {
-		return new CudaSimulationLauncher(dimension, numberOfSimulations, maxSimulationSize, function);
+		return new CudaRkf45SimulationLauncher(dimension, numberOfSimulations, maxSimulationSize, function);
 	}
 
 

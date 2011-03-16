@@ -57,7 +57,7 @@ public class CpuRkf45SimulationLauncher extends AbstractCpuSimulationLauncher
 	}
 
 	@Override
-	protected Simulation simulate(int simulationId, float time, float timeStep, float targetTime, float[] vectors, int numberOfSimulations, float absDivergency, int maxNumberOfExecutedSteps) {
+	protected Simulation simulate(int simulationId, float time, float timeStep, float targetTime, float[] vectors, int numberOfSimulations, float absDivergency) {
 
 		List<Point> points = new ArrayList<Point>();
 		float[] initData = new float[getDimension()];
@@ -77,7 +77,7 @@ public class CpuRkf45SimulationLauncher extends AbstractCpuSimulationLauncher
 		int position = 0;
 		float myStep = timeStep;
 
-		for (int step=0; step<maxNumberOfExecutedSteps; step++) {
+		for (int step=0; step<MAX_NUMBER_OF_EXECUTED_STEPS; step++) {
 			float[] data = previous.toArray();
 			float error = 0;
 			// K1

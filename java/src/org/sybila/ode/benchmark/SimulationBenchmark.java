@@ -58,7 +58,7 @@ public class SimulationBenchmark {
 
 	public SimulationBenchmarkResult bench(SimulationLauncher launcher) {
 		long start = System.nanoTime();
-		SimulationResult result = launcher.launch(0, 1, maxSimulationSize + 1, getVectors(), numberOfSimulations, (float) 0.01, (int) (maxSimulationSize / CpuEulerSimulationLauncher.TIME_STEP));
+		SimulationResult result = launcher.launch(0, 1, maxSimulationSize + 1, getVectors(), numberOfSimulations, (float) 0.01);
 		long end = System.nanoTime();
 		int sumLength = 0;
 		for(int i=0; i<result.getNumberOfSimulations(); i++) {
