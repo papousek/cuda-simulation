@@ -10,6 +10,10 @@ abstract public class AbstractCpuSimulationLauncher extends AbstractSimulationLa
 		super(dimension, maxNumberOfSimulations, maxSimulationSize, function);
 	}
 
+	public AbstractCpuSimulationLauncher(int dimension, int maxNumberOfSimulations, int maxSimulationSize, MultiAffineFunction function, float minAbsDivergency, float maxAbsDivergency, float minRelDivergency, float maxRelDivergency) {
+		super(dimension, maxNumberOfSimulations, maxSimulationSize, function, minAbsDivergency, maxAbsDivergency, minRelDivergency, maxRelDivergency);
+	}
+
 	public SimulationResult launch(
 			float time,
 			float timeStep,

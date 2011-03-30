@@ -46,6 +46,10 @@ public class CpuRkf45SimulationLauncher extends AbstractCpuSimulationLauncher {
 		super(dimension, maxNumberOfSimulations, maxSimulationSize, function);
 	}
 
+	public CpuRkf45SimulationLauncher(int dimension, int maxNumberOfSimulations, int maxSimulationSize, MultiAffineFunction function, float minAbsDivergency, float maxAbsDivergency, float minRelDivergency, float maxRelDivergency) {
+		super(dimension, maxNumberOfSimulations, maxSimulationSize, function, minAbsDivergency, maxAbsDivergency, minRelDivergency, maxRelDivergency);
+	}
+
 	@Override
 	protected Simulation simulate(int simulationId, float time, float timeStep, float targetTime, float[] vectors, int numberOfSimulations) {
 

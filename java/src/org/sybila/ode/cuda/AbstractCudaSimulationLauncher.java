@@ -1,6 +1,5 @@
 package org.sybila.ode.cuda;
 
-import jcuda.Sizeof;
 import jcuda.runtime.cudaStream_t;
 import jcuda.utils.KernelLauncher;
 import org.sybila.ode.AbstractSimulationLauncher;
@@ -17,6 +16,10 @@ abstract public class AbstractCudaSimulationLauncher extends AbstractSimulationL
 
 	public AbstractCudaSimulationLauncher(int dimension, int maxNumberOfSimulations, int maxSimulationSize, MultiAffineFunction function) {
 		super(dimension, maxNumberOfSimulations, maxSimulationSize, function);
+	}
+
+	public AbstractCudaSimulationLauncher(int dimension, int maxNumberOfSimulations, int maxSimulationSize, MultiAffineFunction function, float minAbsDivergency, float maxAbsDivergency, float minRelDivergency, float maxRelDivergency) {
+		super(dimension, maxNumberOfSimulations, maxSimulationSize, function, minAbsDivergency, maxAbsDivergency, minRelDivergency, maxRelDivergency);
 	}
 
 	public SimulationResult launch(

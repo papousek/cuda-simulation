@@ -15,7 +15,7 @@ abstract public class AbstractSimulationLauncher implements SimulationLauncher
 	private int maxNumberOfSimulations;
 
 	public AbstractSimulationLauncher(int dimension, int maxNumberOfSimulations, int maxSimulationSize, MultiAffineFunction function) {
-		this(dimension, maxNumberOfSimulations, maxSimulationSize, function, (float) 0.0, (float) 0.001, (float) 0.0, (float) 0.0);
+		this(dimension, maxNumberOfSimulations, maxSimulationSize, function, (float) 0.0, (float) 0.001, (float) 0.0, (float) 0.01);
 	}
 
 	public AbstractSimulationLauncher(int dimension, int maxNumberOfSimulations, int maxSimulationSize, MultiAffineFunction function, float minAbsDivergency, float maxAbsDivergency, float minRelDivergency, float maxRelDivergency) {

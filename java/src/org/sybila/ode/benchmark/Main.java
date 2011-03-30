@@ -11,10 +11,10 @@ import org.sybila.ode.cuda.CudaRkf45SimulationLauncher;
 public class Main {
 
 	private static final int DIMENSION = 10;
-	private static final int MAX_NUMBER_OF_SIMULATIONS = 100;
-	private static final int MIN_NUMBER_OF_SIMULATIONS = 100;
-	private static final int NUMBER_OF_SIMULATIONS_STEP = 100;
-	private static final int SIMULATION_LENGTH = 100;
+	private static final int MAX_NUMBER_OF_SIMULATIONS = 500;
+	private static final int MIN_NUMBER_OF_SIMULATIONS = 500;
+	private static final int NUMBER_OF_SIMULATIONS_STEP = 500;
+	private static final int SIMULATION_LENGTH = 10000;
 
 	public static void main(String[] args) {
 		header();
@@ -22,7 +22,7 @@ public class Main {
 
 		SimulationLauncher[] launchers = new SimulationLauncher[]{
 //			new CpuEulerSimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS, SIMULATION_LENGTH, function),
-			new CpuRkf45SimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS, SIMULATION_LENGTH, function),
+//			new CpuRkf45SimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS, SIMULATION_LENGTH, function),
 			new CudaRkf45SimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS,SIMULATION_LENGTH, function),
 		};
 

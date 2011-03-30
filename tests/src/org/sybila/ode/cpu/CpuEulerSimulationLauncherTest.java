@@ -9,8 +9,8 @@ public class CpuEulerSimulationLauncherTest extends AbstractSimulationLauncherTe
 
 	@Override
 	protected SimulationLauncher createLauncher(int dimension, int numberOfSimulations, int maxSimulationSize, MultiAffineFunction function) {
-		return null;
-//		return new CpuEulerSimulationLauncher(dimension, numberOfSimulations, maxSimulationSize, function);
+//		return null;
+		return new CpuEulerSimulationLauncher(dimension, numberOfSimulations, maxSimulationSize, function);
 	}
 
 
