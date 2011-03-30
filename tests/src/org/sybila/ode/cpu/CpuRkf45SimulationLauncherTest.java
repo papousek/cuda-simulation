@@ -9,7 +9,8 @@ public class CpuRkf45SimulationLauncherTest extends AbstractSimulationLauncherTe
 
 	@Override
 	protected SimulationLauncher createLauncher(int dimension, int numberOfSimulations, int maxSimulationSize, MultiAffineFunction function) {
-		return new CpuRkf45SimulationLauncher(dimension, numberOfSimulations, maxSimulationSize, function);
+		return null;
+		//return new CpuRkf45SimulationLauncher(dimension, numberOfSimulations, maxSimulationSize, function);
 	}
 
 

@@ -39,14 +39,19 @@ public class MultiAffineFunction {
 	}
 
 	public float compute(int dimension, float[] data) {
+//		System.out.print("X{" + dimension + "} = ");
 		float result = 0;
 		for (int c = coefficientIndexes[dimension]; c < coefficientIndexes[dimension + 1]; c++) {
+//			if (result != 0) System.out.print(" + ");
 			float auxResult = coefficients[c];
+//			System.out.print("(" + auxResult + ")");
 			for (int f = factorIndexes[c]; f < factorIndexes[c + 1]; f++) {
+//				System.out.print(" * X{" + factors[f] + "}");
 				auxResult *= data[factors[f]];
 			}
 			result += auxResult;
 		}
+//		System.out.println();
 		return result;
 	}
 

@@ -3,7 +3,7 @@ package org.sybila.ode;
 public enum SimulationStatus
 {
 
-	OK, TIMEOUT;
+	OK, TIMEOUT, PRECISION;
 
 	public static SimulationStatus fromInt(int status) {
 		switch(status) {
@@ -11,6 +11,8 @@ public enum SimulationStatus
 				return OK;
 			case 1:
 				return TIMEOUT;
+			case 2:
+				return PRECISION;
 			default:
 				//return null;
 				throw new IllegalStateException("There is no status corresponding to the number [" + status + "].");

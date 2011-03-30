@@ -71,7 +71,7 @@ public class Point implements org.sybila.ode.Point
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(time + " ");
+		builder.append(getTime() + " ");
 		builder.append("[");
 		boolean notFirst = false;
 		for(int i=startIndex; i<startIndex+dimension; i++) {

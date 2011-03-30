@@ -20,8 +20,7 @@ public class CpuEulerSimulationLauncher extends AbstractCpuSimulationLauncher
 			float timeStep,
 			float targetTime,
 			float[] vectors,
-			int numberOfSimulations,
-			float absDivergency) {
+			int numberOfSimulations) {
 
 		ArrayList<Point> points = new ArrayList<Point>();
 		float[] initData = new float[getDimension()];

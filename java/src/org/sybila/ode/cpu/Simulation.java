@@ -16,8 +16,8 @@ public class Simulation implements org.sybila.ode.Simulation
 		if (dimension <= 0) {
 			throw new IllegalArgumentException("The size of vector has to be a positive number.");
 		}
-		if (points.length == 0) {
-			throw new IllegalArgumentException("The lenght of the simulation has to be a positive number.");
+		if (points.length < 0) {
+			throw new IllegalArgumentException("The lenght of the simulation has to be a non negative number.");
 		}
 		if (status == null) {
 			throw new NullPointerException("The parameter [status] is NULL.");

@@ -1,5 +1,6 @@
 package org.sybila.ode.cuda;
 
+import jcuda.Sizeof;
 import jcuda.runtime.cudaStream_t;
 import jcuda.utils.KernelLauncher;
 import org.sybila.ode.AbstractSimulationLauncher;
@@ -23,8 +24,7 @@ abstract public class AbstractCudaSimulationLauncher extends AbstractSimulationL
 		float	timeStep,
 		float	targetTime,
 		float[] vectors,
-		int		numberOfSimulations,
-		float	absDivergency
+		int		numberOfSimulations
 	) {
 		if (numberOfSimulations <= 0 || numberOfSimulations > getMaxNumberOfSimulations()) {
 			throw new IllegalArgumentException("The number of simulations [" + numberOfSimulations + "] is out of the range [1, " + workspace.getMaxNumberOfSimulations() + "].");
@@ -38,6 +38,7 @@ abstract public class AbstractCudaSimulationLauncher extends AbstractSimulationL
 		int gridDim = (int) Math.ceil(Math.sqrt((float) numberOfSimulations / BLOCK_SIZE));
 		launcher.setGridSize(gridDim, gridDim);
 		launcher.setBlockSize(BLOCK_SIZE, workspace.getDimension(), 1);
+//		launcher.setSharedMemSize(getFunction().getCoefficientIndexes().length * Sizeof.INT + getFunction().getCoefficients().length * Sizeof.FLOAT + getFunction().getFactorIndexes().length * Sizeof.INT + getFunction().getFactors().length * Sizeof.INT);
 		launcher.call(
 			time,
 			timeStep,
@@ -46,7 +47,10 @@ abstract public class AbstractCudaSimulationLauncher extends AbstractSimulationL
 			numberOfSimulations,
 			getWorkspace().getMaxNumberOfSimulations(),
 			getWorkspace().getDimension(),
-			absDivergency,
+			getMinAbsDivergency(),
+			getMaxAbsDivergency(),
+			getMinRelDivergency(),
+			getMaxRelDivergency(),
 			MAX_NUMBER_OF_EXECUTED_STEPS,
 			getWorkspace().getMaxSimulationSize(),
 			getWorkspace().getDeviceFunctionCoefficients(),
@@ -61,6 +65,11 @@ abstract public class AbstractCudaSimulationLauncher extends AbstractSimulationL
 
 		// get result
 		return getWorkspace().getResult(numberOfSimulations);
+	}
+
+	@Override
+	public void finalize() {
+		clean();
 	}
 
 	protected void clean() {

@@ -5,12 +5,20 @@ abstract public class AbstractSimulationLauncher implements SimulationLauncher
 
 	public static final int MAX_NUMBER_OF_EXECUTED_STEPS = 100000;
 
+	private int dimension;
 	private MultiAffineFunction function;
+	private float maxAbsDivergency;
+	private float maxRelDivergency;
+	private float minAbsDivergency;
+	private float minRelDivergency;
 	private int maxSimulationSize;
 	private int maxNumberOfSimulations;
-	private int dimension;
 
 	public AbstractSimulationLauncher(int dimension, int maxNumberOfSimulations, int maxSimulationSize, MultiAffineFunction function) {
+		this(dimension, maxNumberOfSimulations, maxSimulationSize, function, (float) 0.0, (float) 0.001, (float) 0.0, (float) 0.0);
+	}
+
+	public AbstractSimulationLauncher(int dimension, int maxNumberOfSimulations, int maxSimulationSize, MultiAffineFunction function, float minAbsDivergency, float maxAbsDivergency, float minRelDivergency, float maxRelDivergency) {
 		if (dimension <= 0) {
 			throw new IllegalArgumentException("The parameter [dimension] has to be a positive number.");
 		}
@@ -27,6 +35,10 @@ abstract public class AbstractSimulationLauncher implements SimulationLauncher
 		this.maxSimulationSize = maxSimulationSize;
 		this.maxNumberOfSimulations = maxNumberOfSimulations;
 		this.function = function;
+		this.maxAbsDivergency = maxAbsDivergency;
+		this.maxRelDivergency = maxRelDivergency;
+		this.minAbsDivergency = minAbsDivergency;
+		this.minRelDivergency = minRelDivergency;
 	}
 
 	protected MultiAffineFunction getFunction() {
@@ -45,4 +57,36 @@ abstract public class AbstractSimulationLauncher implements SimulationLauncher
 		return maxSimulationSize;
 	}
 
+	public float getMaxAbsDivergency() {
+		return maxAbsDivergency;
+	}
+
+	public float getMaxRelDivergency() {
+		return maxRelDivergency;
+	}
+
+	public float getMinAbsDivergency() {
+		return minAbsDivergency;
+	}
+
+	public float getMinRelDivergency() {
+		return minRelDivergency;
+	}
+
+	public boolean hasMaxAbsDivergency() {
+		return maxAbsDivergency > 0;
+	}
+
+	public boolean hasMaxRelDivergency() {
+		return maxRelDivergency > 0;
+	}
+
+	public boolean hasMinAbsDivergency() {
+		return minAbsDivergency > 0;
+	}
+
+	public boolean hasMinRelDivergency() {
+		return minRelDivergency > 0;
+	}
+	
 }

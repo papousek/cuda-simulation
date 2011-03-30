@@ -44,6 +44,9 @@ public class Simulation implements org.sybila.ode.Simulation
 		if (times == null) {
 			throw new NullPointerException("The parameter [times] is NULL.");
 		}
+//		System.out.println("-----------------------");
+//		System.out.println("[" + id + "]: " + length);
+//		System.out.println("-----------------------");
 		this.data = data;
 		this.dimension = dimension;
 		this.id = id;

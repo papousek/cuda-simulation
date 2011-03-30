@@ -15,12 +15,11 @@ abstract public class AbstractCpuSimulationLauncher extends AbstractSimulationLa
 			float timeStep,
 			float targetTime,
 			float[] vectors,
-			int numberOfSimulations,
-			float absDivergency) {
+			int numberOfSimulations) {
 
 		org.sybila.ode.Simulation[] simulations = new Simulation[numberOfSimulations];
 		for (int i = 0; i < numberOfSimulations; i++) {
-			simulations[i] = simulate(i, time, timeStep, targetTime, vectors, numberOfSimulations, absDivergency);
+			simulations[i] = simulate(i, time, timeStep, targetTime, vectors, numberOfSimulations);
 		}
 		return new org.sybila.ode.cpu.SimulationResult(simulations);
 	}
@@ -31,7 +30,5 @@ abstract public class AbstractCpuSimulationLauncher extends AbstractSimulationLa
 			float timeStep,
 			float targetTime,
 			float[] vectors,
-			int numberOfSimulations,
-			float absDivergency);
-
+			int numberOfSimulations);
 }

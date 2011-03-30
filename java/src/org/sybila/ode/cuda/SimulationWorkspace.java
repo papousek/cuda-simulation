@@ -140,7 +140,9 @@ public class SimulationWorkspace {
 		copyDeviceToHost(Pointer.to(returnCodesHost), returnCodes, numberOfSimulations * Sizeof.INT);
 		copyDeviceToHost(Pointer.to(simulationTimesHost), resultTimes, simulationTimesHost.length * Sizeof.FLOAT);
 		copyDeviceToHost(Pointer.to(simulationPointsHost), resultPoints, numberOfSimulations * maxSimulationSize * dimension * Sizeof.FLOAT);
-		
+
+//		printArray(simulationTimesHost);
+
 		return new SimulationResult(numberOfSimulations, dimension, numberOfExecutedStepsHost, returnCodesHost, simulationTimesHost, simulationPointsHost);
 	}
 

@@ -1,5 +1,7 @@
 package org.sybila.ode.benchmark;
 
+import jcuda.Sizeof;
+import jcuda.runtime.cudaDeviceProp;
 import org.sybila.ode.MultiAffineFunction;
 import org.sybila.ode.SimulationLauncher;
 import org.sybila.ode.cpu.CpuEulerSimulationLauncher;
@@ -8,18 +10,18 @@ import org.sybila.ode.cuda.CudaRkf45SimulationLauncher;
 
 public class Main {
 
-	private static final int DIMENSION = 3;
-	private static final int MAX_NUMBER_OF_SIMULATIONS = 500;
+	private static final int DIMENSION = 10;
+	private static final int MAX_NUMBER_OF_SIMULATIONS = 100;
 	private static final int MIN_NUMBER_OF_SIMULATIONS = 100;
 	private static final int NUMBER_OF_SIMULATIONS_STEP = 100;
-	private static final int SIMULATION_LENGTH = 1000;
+	private static final int SIMULATION_LENGTH = 100;
 
 	public static void main(String[] args) {
 		header();
-		MultiAffineFunction function = SimulationBenchmark.createFunction(DIMENSION);
+		MultiAffineFunction function = SimulationBenchmark.createSimpleFunction(DIMENSION);
 
 		SimulationLauncher[] launchers = new SimulationLauncher[]{
-			new CpuEulerSimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS, SIMULATION_LENGTH, function),
+//			new CpuEulerSimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS, SIMULATION_LENGTH, function),
 			new CpuRkf45SimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS, SIMULATION_LENGTH, function),
 			new CudaRkf45SimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS,SIMULATION_LENGTH, function),
 		};
@@ -43,6 +45,11 @@ public class Main {
 		System.out.println("  MINIMUM NUMBER OF SIMULATIONS: " + MIN_NUMBER_OF_SIMULATIONS);
 		System.out.println("  MAXIMUM NUMBER OF SIMULATIONS: " + MAX_NUMBER_OF_SIMULATIONS);
 		System.out.println("  NUMBER OF SIMULATIONS STEP:    " + NUMBER_OF_SIMULATIONS_STEP);
+		cudaDeviceProp properties = new cudaDeviceProp();
+		jcuda.runtime.JCuda.cudaGetDeviceProperties(properties, 0);
+		System.out.println("  SIZE OF GLOBAL MEMORY:         " + properties.totalGlobalMem / (1000 * 1000 * Sizeof.FLOAT) + " Mfloats");
+		System.out.println("  MAXIMUM MEMORY PITCH:          " + properties.memPitch / (1000 * 1000 * Sizeof.FLOAT) + " Mfloats");
+		System.out.println("  KERNEL TIMEOUT:                " + (properties.kernelExecTimeoutEnabled > 1 ? "YES" : "NO"));
 		line();
 	}
 
