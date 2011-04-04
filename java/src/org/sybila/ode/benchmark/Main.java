@@ -1,11 +1,16 @@
 package org.sybila.ode.benchmark;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import jcuda.Sizeof;
 import jcuda.runtime.cudaDeviceProp;
+import org.sybila.ode.Equation;
+import org.sybila.ode.EquationSystem;
 import org.sybila.ode.MultiAffineFunction;
 import org.sybila.ode.SimulationLauncher;
 import org.sybila.ode.cpu.CpuEulerSimulationLauncher;
 import org.sybila.ode.cpu.CpuRkf45SimulationLauncher;
+import org.sybila.ode.cuda.CudaEulerSimulationLauncher;
 import org.sybila.ode.cuda.CudaRkf45SimulationLauncher;
 
 public class Main {
@@ -21,9 +26,10 @@ public class Main {
 		MultiAffineFunction function = SimulationBenchmark.createSimpleFunction(DIMENSION);
 
 		SimulationLauncher[] launchers = new SimulationLauncher[]{
-//			new CpuEulerSimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS, SIMULATION_LENGTH, function),
-//			new CpuRkf45SimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS, SIMULATION_LENGTH, function),
+			new CpuEulerSimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS, SIMULATION_LENGTH, function),
+			new CpuRkf45SimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS, SIMULATION_LENGTH, function),
 			new CudaRkf45SimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS,SIMULATION_LENGTH, function),
+			new CudaEulerSimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS,SIMULATION_LENGTH, function),
 		};
 
 		for (int numberOfSimulations = MIN_NUMBER_OF_SIMULATIONS; numberOfSimulations <= MAX_NUMBER_OF_SIMULATIONS; numberOfSimulations += NUMBER_OF_SIMULATIONS_STEP) {

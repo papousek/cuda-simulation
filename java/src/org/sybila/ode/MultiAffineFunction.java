@@ -1,5 +1,8 @@
 package org.sybila.ode;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 public class MultiAffineFunction {
 
 	private float[] coefficients;
@@ -69,5 +72,15 @@ public class MultiAffineFunction {
 
 	public int[] getFactors() {
 		return factors;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("COEFFICIENTS:         " + Arrays.toString(coefficients) + System.getProperty("line.separator"));
+		builder.append("COEFFICIENTS INDEXES: " + Arrays.toString(coefficientIndexes) + System.getProperty("line.separator"));
+		builder.append("FACTORS:              " + Arrays.toString(factors) + System.getProperty("line.separator"));
+		builder.append("FACTOR INDEXES:       " + Arrays.toString(factorIndexes) + System.getProperty("line.separator"));
+		return builder.toString();
 	}
 }
