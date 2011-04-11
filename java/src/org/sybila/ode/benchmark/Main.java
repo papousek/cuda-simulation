@@ -1,10 +1,7 @@
 package org.sybila.ode.benchmark;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import jcuda.Sizeof;
 import jcuda.runtime.cudaDeviceProp;
-import org.sybila.ode.Equation;
 import org.sybila.ode.EquationSystem;
 import org.sybila.ode.MultiAffineFunction;
 import org.sybila.ode.SimulationLauncher;
@@ -12,24 +9,26 @@ import org.sybila.ode.cpu.CpuEulerSimulationLauncher;
 import org.sybila.ode.cpu.CpuRkf45SimulationLauncher;
 import org.sybila.ode.cuda.CudaEulerSimulationLauncher;
 import org.sybila.ode.cuda.CudaRkf45SimulationLauncher;
+import org.sybila.ode.cuda.CudaSimpleEulerSimulationLauncher;
 
 public class Main {
 
 	private static final int DIMENSION = 10;
-	private static final int MAX_NUMBER_OF_SIMULATIONS = 500;
-	private static final int MIN_NUMBER_OF_SIMULATIONS = 500;
-	private static final int NUMBER_OF_SIMULATIONS_STEP = 500;
-	private static final int SIMULATION_LENGTH = 10000;
+	private static final int MAX_NUMBER_OF_SIMULATIONS = 1000;
+	private static final int MIN_NUMBER_OF_SIMULATIONS = 100;
+	private static final int NUMBER_OF_SIMULATIONS_STEP = 100;
+	private static final int SIMULATION_LENGTH = 1000;
 
 	public static void main(String[] args) {
-		header();
-		MultiAffineFunction function = SimulationBenchmark.createSimpleFunction(DIMENSION);
-
+		EquationSystem system = SimulationBenchmark.createLinearFunction(DIMENSION);
+		header(system);
+		MultiAffineFunction function = system.getFunction();
 		SimulationLauncher[] launchers = new SimulationLauncher[]{
-			new CpuEulerSimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS, SIMULATION_LENGTH, function),
-			new CpuRkf45SimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS, SIMULATION_LENGTH, function),
+//			new CpuEulerSimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS, SIMULATION_LENGTH, function),
+//			new CpuRkf45SimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS, SIMULATION_LENGTH, function),
 			new CudaRkf45SimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS,SIMULATION_LENGTH, function),
 			new CudaEulerSimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS,SIMULATION_LENGTH, function),
+			new CudaSimpleEulerSimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS,SIMULATION_LENGTH, function),
 		};
 
 		for (int numberOfSimulations = MIN_NUMBER_OF_SIMULATIONS; numberOfSimulations <= MAX_NUMBER_OF_SIMULATIONS; numberOfSimulations += NUMBER_OF_SIMULATIONS_STEP) {
@@ -44,7 +43,7 @@ public class Main {
 		}
 	}
 
-	private static void header() {
+	private static void header(EquationSystem system) {
 		line();
 		System.out.println("  DIMENSION:                     " + DIMENSION);
 		System.out.println("  SIMULATION LENGTH:             " + SIMULATION_LENGTH);
@@ -56,6 +55,12 @@ public class Main {
 		System.out.println("  SIZE OF GLOBAL MEMORY:         " + properties.totalGlobalMem / (1000 * 1000 * Sizeof.FLOAT) + " Mfloats");
 		System.out.println("  MAXIMUM MEMORY PITCH:          " + properties.memPitch / (1000 * 1000 * Sizeof.FLOAT) + " Mfloats");
 		System.out.println("  KERNEL TIMEOUT:                " + (properties.kernelExecTimeoutEnabled > 1 ? "YES" : "NO"));
+		System.out.println("  MAX THREADS PER BLOCK:         " + properties.maxThreadsPerBlock);
+		System.out.println("  MAX THREADS DIM:               [" + properties.maxThreadsDim[0] + ", " + properties.maxThreadsDim[1] + ", " + properties.maxThreadsDim[2] + "]");
+		System.out.println("  MAX GRID SIZE:                 [" + properties.maxGridSize[0] + ", " + properties.maxGridSize[1] + ", " + properties.maxGridSize[2] + "]");
+		line();
+		System.out.println("  EQUATION SYSTEM: ");
+		System.out.println(system);
 		line();
 	}
 
@@ -78,9 +83,11 @@ public class Main {
 			tabs2.append(" ");
 		}
 		System.out.print(tabs1);
-		System.out.print(benchmarkResult.getTime() / 1000000);
+		String time = benchmarkResult.getTime() > 0 ? String.valueOf(benchmarkResult.getTime() / 1000000) : "N/A";
+		System.out.print(time);
 		System.out.print(tabs2);
-		System.out.print(benchmarkResult.getAvgSimulationLength());
+		String length = benchmarkResult.getAvgSimulationLength() > 0 ? "" + String.valueOf(benchmarkResult.getAvgSimulationLength()) : "N/A";
+		System.out.print(length);
 		System.out.println();
 	}
 }

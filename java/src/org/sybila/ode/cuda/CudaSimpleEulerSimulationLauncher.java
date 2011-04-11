@@ -1,27 +1,21 @@
 package org.sybila.ode.cuda;
 
-import jcuda.runtime.cudaStream_t;
+import java.io.File;
 import jcuda.utils.KernelLauncher;
-import org.sybila.ode.AbstractSimulationLauncher;
 import org.sybila.ode.MultiAffineFunction;
 
-abstract public class AbstractCudaSimulationLauncher extends AbstractSimulationLauncher
+public class CudaSimpleEulerSimulationLauncher extends AbstractCudaSimulationLauncher
 {
 
-	protected static final int BLOCK_SIZE = 32;
+	private static final String KERNEL_FILE = "c" + File.separator + "build" + File.separator + "num_sim_kernel.cubin";
 
-	private SimulationWorkspace workspace;
+	private static final String KERNEL_NAME = "euler_simple_kernel";
 
-	private cudaStream_t stream;
-
-	public AbstractCudaSimulationLauncher(int dimension, int maxNumberOfSimulations, int maxSimulationSize, MultiAffineFunction function) {
+	public CudaSimpleEulerSimulationLauncher(int dimension, int maxNumberOfSimulations, int maxSimulationSize, MultiAffineFunction function) {
 		super(dimension, maxNumberOfSimulations, maxSimulationSize, function);
 	}
 
-	public AbstractCudaSimulationLauncher(int dimension, int maxNumberOfSimulations, int maxSimulationSize, MultiAffineFunction function, float minAbsDivergency, float maxAbsDivergency, float minRelDivergency, float maxRelDivergency) {
-		super(dimension, maxNumberOfSimulations, maxSimulationSize, function, minAbsDivergency, maxAbsDivergency, minRelDivergency, maxRelDivergency);
-	}
-
+	@Override
 	public SimulationResult launch(
 		float	time,
 		float	timeStep,
@@ -38,10 +32,9 @@ abstract public class AbstractCudaSimulationLauncher extends AbstractSimulationL
 
 		// run kernel
 		KernelLauncher launcher = KernelLauncher.load(getKernelFile(), getKernelName());
-		int blockDim = BLOCK_SIZE * ((BLOCK_SIZE/2) / getWorkspace().getDimension());
-		int gridDim = (int) Math.ceil(Math.sqrt((float) numberOfSimulations / blockDim));
+		int gridDim = (int) Math.ceil(Math.sqrt((float) numberOfSimulations / (BLOCK_SIZE * BLOCK_SIZE/2)));
 		launcher.setGridSize(gridDim, gridDim);
-		launcher.setBlockSize(blockDim, getWorkspace().getDimension(), 1);
+		launcher.setBlockSize(BLOCK_SIZE, BLOCK_SIZE/2, 1);
 		launcher.call(
 			time,
 			timeStep,
@@ -71,32 +64,13 @@ abstract public class AbstractCudaSimulationLauncher extends AbstractSimulationL
 	}
 
 	@Override
-	public void finalize() {
-		clean();
+	protected String getKernelFile() {
+		return KERNEL_FILE;
 	}
 
-	protected void clean() {
-		if (workspace == null) {
-			workspace.destroy();
-		}
+	@Override
+	protected String getKernelName() {
+		return KERNEL_NAME;
 	}
-
-	protected cudaStream_t getStream() {
-		if (stream == null) {
-			stream = new cudaStream_t();
-		}
-		return stream;
-	}
-
-	protected SimulationWorkspace getWorkspace() {
-		if (workspace == null) {
-			workspace = new SimulationWorkspace(getDimension(), getMaxNumberOfSimulations(), getMaxSimulationSize(), getFunction());
-		}
-		return workspace;
-	}
-
-	abstract protected String getKernelFile();
-
-	abstract protected String getKernelName();
 
 }

@@ -112,7 +112,7 @@ void __global__ rkf45_kernel(
 	int dimension_id  = id_in_block % vector_size;
 
 	// reset number of executed steps and set the default time step
-	*number_of_executed_steps = 0;	
+	number_of_executed_steps[simulation_id] = 0;	
 	float h = time_step;
 
 	// set current time and position
@@ -174,12 +174,12 @@ void __global__ rkf45_kernel(
 		__syncthreads();
 
 		// error
-		float error = abs(R1 * k1 + R3 * k3 + R4 * k4 + R5 * k5 + R6 * k6);
+		float my_error = abs(R1 * k1 + R3 * k3 + R4 * k4 + R5 * k5 + R6 * k6);
 		__syncthreads();
-		result_points[(simulation_max_size + 1) * vector_size * simulation_id  + vector_size * (position+1) + dimension_id] = error;
+		result_points[(simulation_max_size + 1) * vector_size * simulation_id  + vector_size * (position+1) + dimension_id] = my_error;
 		__threadfence_block();
 		__syncthreads();
-		error = 0;
+		float error = 0;
 		for (int i=0; i<vector_size; i++) {
 			if (result_points[(simulation_max_size + 1) * vector_size * simulation_id  + vector_size * (position+1) + i] > error) {
 				error = result_points[(simulation_max_size + 1) * vector_size * simulation_id  + vector_size * (position+1) + i];
@@ -203,16 +203,14 @@ void __global__ rkf45_kernel(
 			float dim_result = vector[dimension_id] + N1 * k1 + N3 * k3 + N4 * k4 + N5 * k5;
 			// compute relative error
 			float rel_error  = 0;
-			result_points[(simulation_max_size + 1) * vector_size * simulation_id  + vector_size * (position+1) + dimension_id] = error/dim_result;
+			result_points[(simulation_max_size + 1) * vector_size * simulation_id  + vector_size * (position+1) + dimension_id] = my_error/dim_result;
 			__threadfence_block();
 			__syncthreads();
 			// sync relative error
-			if (max_rel_divergency > 0 && error > 0) {
-				for(int i=0; i<vector_size; i++) {
-					if (rel_error < result_points[(simulation_max_size + 1) * vector_size * simulation_id  + vector_size * (position+1) + i]) {
-						rel_error = result_points[(simulation_max_size + 1) * vector_size * simulation_id  + vector_size * (position+1) + i];
-					}
-				}				
+			for(int i=0; i<vector_size; i++) {
+				if (rel_error < result_points[(simulation_max_size + 1) * vector_size * simulation_id  + vector_size * (position+1) + i]) {
+					rel_error = result_points[(simulation_max_size + 1) * vector_size * simulation_id  + vector_size * (position+1) + i];
+				}
 			}
 			__syncthreads();
 			// check relative error
@@ -240,6 +238,162 @@ void __global__ rkf45_kernel(
 					}
 				}				
 			}
+		}
+	}
+	if (steps >= max_number_of_steps) return_code[simulation_id] = STATUS_TIMEOUT;
+	else return_code[simulation_id] = STATUS_OK;
+	number_of_executed_steps[simulation_id] = position;
+}
+
+
+extern "C"
+void __global__ euler_simple_kernel(
+	const float 	time,
+	const float 	time_step,
+	const int	target_time,
+	const float*	vectors,
+	const int	number_of_vectors,
+	const int	max_number_of_vectors,
+	const int	vector_size,
+	const float 	min_abs_divergency,
+	const float 	max_abs_divergency,
+	const float	min_rel_divergency,
+	const float	max_rel_divergency,
+	const int	max_number_of_steps,
+	const int	simulation_max_size,
+	const float* 	function_coefficients,
+	const int*	function_coefficient_indexes,
+	const int*	function_factors,
+	const int*	function_factor_indexes,
+	float* 		result_points,
+	float*		result_times,
+	int*		number_of_executed_steps,
+	int*		return_code
+) {
+	// compute index of simulation
+	int simulation_id = (blockIdx.y * gridDim.x + blockIdx.x) * blockDim.x * blockDim.y + threadIdx.y * blockDim.x + threadIdx.x;
+
+	// if the thread is out of the number of simulations, exit
+	if (simulation_id >= number_of_vectors) return;
+
+	// reset number of executed steps and set the default time step
+	number_of_executed_steps[simulation_id] = 0;	
+	float h = time_step;
+
+	// set current time and position
+	float current_time 	= time;
+	int position		= 0;
+
+	// note the pointer on the vetor
+	float* previous = &(result_points[(simulation_max_size + 1) * vector_size * simulation_id  + vector_size * position]);
+	float* next 	= &(result_points[(simulation_max_size + 1) * vector_size * simulation_id  + vector_size * (position + 1)]);
+
+	// copy init vector to the result
+	for(int i=0; i<vector_size; i++) {
+		previous[i] = vectors[vector_size * simulation_id + i];
+	}
+
+	// perform the simulation
+	int steps = 0;
+	
+	while(steps < max_number_of_steps && current_time < target_time && position < simulation_max_size) {
+		steps++;
+		for(int dim=0; dim<vector_size; dim++) {
+			float dim_result;
+			ode_function(current_time + h, previous, dim, vector_size, function_coefficients, function_coefficient_indexes, function_factors, function_factor_indexes, &dim_result);
+			next[dim] = previous[dim] + h * dim_result;
+		}
+		current_time += h;
+		if (current_time >= time_step * (position+1)) {
+			result_times[simulation_id * simulation_max_size + position] = current_time;
+			position++;
+			previous = &(result_points[(simulation_max_size + 1) * vector_size * simulation_id  + vector_size * position]);
+			next = &(result_points[(simulation_max_size + 1) * vector_size * simulation_id  + vector_size * (position + 1)]);
+		}
+	}
+	if (steps >= max_number_of_steps) return_code[simulation_id] = STATUS_TIMEOUT;
+	else return_code[simulation_id] = STATUS_OK;
+	number_of_executed_steps[simulation_id] = position;
+}
+
+extern "C"
+void __global__ euler_kernel(
+	const float 	time,
+	const float 	time_step,
+	const int	target_time,
+	const float*	vectors,
+	const int	number_of_vectors,
+	const int	max_number_of_vectors,
+	const int	vector_size,
+	const float 	min_abs_divergency,
+	const float 	max_abs_divergency,
+	const float	min_rel_divergency,
+	const float	max_rel_divergency,
+	const int	max_number_of_steps,
+	const int	simulation_max_size,
+	const float* 	function_coefficients,
+	const int*	function_coefficient_indexes,
+	const int*	function_factors,
+	const int*	function_factor_indexes,
+	float* 		result_points,
+	float*		result_times,
+	int*		number_of_executed_steps,
+	int*		return_code
+) {
+	// compute the number of simulations per block
+	__shared__ int simulations_per_block;
+	if (threadIdx.x == 0 && threadIdx.y == 0) {
+		simulations_per_block = (blockDim.x * blockDim.y) / vector_size;
+	}
+	__threadfence_block();
+	__syncthreads();
+
+	// compute the id within the block
+	int id_in_block = threadIdx.y * blockDim.x + threadIdx.x;
+
+	// if the thread can't compute any simulation, exit
+	if (id_in_block >= vector_size * simulations_per_block) return;
+
+	// compute index of simulation
+	int simulation_id = (blockIdx.y * gridDim.x + blockIdx.x) * simulations_per_block + id_in_block / vector_size;
+
+	// if the thread is out of the number of simulations, exit
+	if (simulation_id >= number_of_vectors) return;
+
+	// compute index of dimension
+	int dimension_id  = id_in_block % vector_size;
+
+	// reset number of executed steps and set the default time step
+	*number_of_executed_steps = 0;	
+	float h = 0.1 * time_step;
+	if (h < MINIMUM_TIME_STEP) h = MINIMUM_TIME_STEP;
+
+	// set current time and position
+	float current_time 	= time;
+	int position		= 0;
+
+	// note the pointer on the vetor
+	float* vector = &(result_points[(simulation_max_size + 1) * vector_size * simulation_id  + vector_size * position]);
+
+	// copy init vector to the result
+	vector[dimension_id] = vectors[vector_size * simulation_id + dimension_id];
+
+	// perform the simulation
+	int steps = 0;
+	while(steps < max_number_of_steps && current_time < target_time && position < simulation_max_size) {	
+		__threadfence_block();
+		__syncthreads();
+		steps++;
+		float dim_result;
+		ode_function(current_time + h, vector, dimension_id, vector_size, function_coefficients, function_coefficient_indexes, function_factors, function_factor_indexes, &dim_result);
+		vector[dimension_id] = vector[dimension_id] + h * dim_result;
+		current_time += h;
+		if (current_time >= time_step * (position+1)) {
+			result_times[simulation_id * simulation_max_size + position] = current_time;
+			position++;
+			dim_result = vector[dimension_id];
+			vector = &(result_points[(simulation_max_size + 1) * vector_size * simulation_id  + vector_size * position]);
+			vector[dimension_id] = dim_result;
 		}
 	}
 	if (steps >= max_number_of_steps) return_code[simulation_id] = STATUS_TIMEOUT;
