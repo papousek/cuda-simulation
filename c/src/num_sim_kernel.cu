@@ -202,11 +202,11 @@ void __global__ rkf45_kernel(
 			// result
 			float dim_result = vector[dimension_id] + N1 * k1 + N3 * k3 + N4 * k4 + N5 * k5;
 			// compute relative error
-			float rel_error  = 0;
 			result_points[(simulation_max_size + 1) * vector_size * simulation_id  + vector_size * (position+1) + dimension_id] = my_error/dim_result;
 			__threadfence_block();
 			__syncthreads();
 			// sync relative error
+			float rel_error  = 0;
 			for(int i=0; i<vector_size; i++) {
 				if (rel_error < result_points[(simulation_max_size + 1) * vector_size * simulation_id  + vector_size * (position+1) + i]) {
 					rel_error = result_points[(simulation_max_size + 1) * vector_size * simulation_id  + vector_size * (position+1) + i];
