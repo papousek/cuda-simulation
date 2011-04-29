@@ -15,6 +15,10 @@ public class CudaSimpleEulerSimulationLauncher extends AbstractCudaSimulationLau
 		super(dimension, maxNumberOfSimulations, maxSimulationSize, function);
 	}
 
+	public CudaSimpleEulerSimulationLauncher(int dimension, int maxNumberOfSimulations, int maxSimulationSize, MultiAffineFunction function, float minAbsDivergency, float maxAbsDivergency, float minRelDivergency, float maxRelDivergency) {
+		super(dimension, maxNumberOfSimulations, maxSimulationSize, function, minAbsDivergency, maxAbsDivergency, minRelDivergency, maxRelDivergency);
+	}
+
 	@Override
 	public SimulationResult launch(
 		float	time,

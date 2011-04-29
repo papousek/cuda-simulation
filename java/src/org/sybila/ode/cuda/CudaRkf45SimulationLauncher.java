@@ -14,6 +14,10 @@ public class CudaRkf45SimulationLauncher extends AbstractCudaSimulationLauncher
 		super(dimension, maxNumberOfSimulations, maxSimulationSize, function);
 	}
 
+	public CudaRkf45SimulationLauncher(int dimension, int maxNumberOfSimulations, int maxSimulationSize, MultiAffineFunction function, float minAbsDivergency, float maxAbsDivergency, float minRelDivergency, float maxRelDivergency) {
+		super(dimension, maxNumberOfSimulations, maxSimulationSize, function, minAbsDivergency, maxAbsDivergency, minRelDivergency, maxRelDivergency);
+	}
+
 	@Override
 	protected String getKernelFile() {
 		return KERNEL_FILE;

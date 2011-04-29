@@ -14,6 +14,10 @@ public class CudaEulerSimulationLauncher extends AbstractCudaSimulationLauncher
 		super(dimension, maxNumberOfSimulations, maxSimulationSize, function);
 	}
 
+	public CudaEulerSimulationLauncher(int dimension, int maxNumberOfSimulations, int maxSimulationSize, MultiAffineFunction function, float minAbsDivergency, float maxAbsDivergency, float minRelDivergency, float maxRelDivergency) {
+		super(dimension, maxNumberOfSimulations, maxSimulationSize, function, minAbsDivergency, maxAbsDivergency, minRelDivergency, maxRelDivergency);
+	}
+
 	@Override
 	protected String getKernelFile() {
 		return KERNEL_FILE;

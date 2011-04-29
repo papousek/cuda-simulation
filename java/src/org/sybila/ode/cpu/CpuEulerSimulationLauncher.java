@@ -14,6 +14,10 @@ public class CpuEulerSimulationLauncher extends AbstractCpuSimulationLauncher
 		super(dimension, maxNumberOfSimulations, maxSimulationSize, function);
 	}
 
+	public CpuEulerSimulationLauncher(int dimension, int maxNumberOfSimulations, int maxSimulationSize, MultiAffineFunction function, float minAbsDivergency, float maxAbsDivergency, float minRelDivergency, float maxRelDivergency) {
+		super(dimension, maxNumberOfSimulations, maxSimulationSize, function, minAbsDivergency, maxAbsDivergency, minRelDivergency, maxRelDivergency);
+	}
+
 	protected Simulation simulate(
 			int simulationId,
 			float time,
