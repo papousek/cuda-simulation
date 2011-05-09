@@ -34,9 +34,9 @@ public class CpuEulerSimulationLauncher extends AbstractCpuSimulationLauncher
 		Point previous = new Point(getDimension(), time, initData);
 		float currentTime = time;
 		int position = 0;
+		float[] data = new float[getDimension()];
 		for (int step=0; step<MAX_NUMBER_OF_EXECUTED_STEPS; step++) {
 			currentTime += TIME_STEP;
-			float[] data = new float[getDimension()];
 			for(int dim=0; dim<getDimension(); dim++) {
 				data[dim] = previous.getValue(dim) + TIME_STEP * getFunction().compute(dim, previous);
 			}

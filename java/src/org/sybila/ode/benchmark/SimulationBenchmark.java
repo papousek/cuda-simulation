@@ -10,6 +10,7 @@ import org.sybila.ode.Simulation;
 import org.sybila.ode.SimulationLauncher;
 import org.sybila.ode.SimulationResult;
 import org.sybila.ode.Variable;
+import org.sybila.ode.cuda.AbstractCudaSimulationLauncher;
 
 public class SimulationBenchmark {
 
@@ -20,6 +21,7 @@ public class SimulationBenchmark {
 	private int maxSimulationSize;
 	private int numberOfSimulations;
 	private float[] vectors;
+	private int numberOfRuns = 1;
 
 	public SimulationBenchmark(int dimension, int numberOfSimulations, int maxSimulationSize) {
 		if (numberOfSimulations <= 0) {
@@ -52,7 +54,7 @@ public class SimulationBenchmark {
 			vars[i] = Variable.generate();
 		}
 		for(int i=0; i<dimension; i++) {
-			eqs.add(Equation.parse("d" + vars[i] + " = " + (0.01 * (i+1)) + " * " + vars[i] + " + " + (0.01 * dimension - i * 0.1) + " * " + vars[(i+1) % dimension]));
+			eqs.add(Equation.parse("d" + vars[i] + " = " + (0.01 * (i+1)) + " * " + vars[i] + " + " + ((-dimension + i) * 0.1) + " * " + vars[(i+1) % dimension]));
 		}
 		return new EquationSystem(eqs);
 	}
@@ -69,22 +71,64 @@ public class SimulationBenchmark {
 		return new EquationSystem(eqs);
 	}
 
+	public static EquationSystem createBayramovFunction(int dimension) {
+		if (dimension != 3) {
+			throw new IllegalArgumentException();
+		}
+		Collection<Equation> eqs = new ArrayList<Equation>();
+		Variable v1 = Variable.generate();
+		Variable v2 = Variable.generate();
+		Variable v3 = Variable.generate();
+		eqs.add(Equation.parse("d" + v1 + " = 0.0005 + " + "(-250) * " + v1 + " * " + v2));
+		eqs.add(Equation.parse("d" + v2 + " = 0.0001 + " + "(-0.1) * " + v2 + " + " + "(-250) * " + v1 + " * " + v2 + " + 300 * " +v2 + " * " + v3));
+		eqs.add(Equation.parse("d" + v3 + " = 250 * " + v1 + " * " + v2 + " + (-300) * " +v2 + " * " + v3));
+		return new EquationSystem(eqs);
+	}
+
 	public SimulationBenchmarkResult bench(SimulationLauncher launcher) {
 		try {
-			long start = System.nanoTime();
-			SimulationResult result = launcher.launch(0, TIME_STEP, TIME_STEP * maxSimulationSize + TIME_STEP, getVectors(), numberOfSimulations);
-			long end = System.nanoTime();
+			launcher.launch(0, TIME_STEP, TIME_STEP * maxSimulationSize + TIME_STEP, getVectors(), numberOfSimulations);
+			long[] times = new long[numberOfRuns];
 			int sumLength = 0;
-			for(int i=0; i<result.getNumberOfSimulations(); i++) {
-				sumLength += result.getSimulation(i).getLength();
+			for(int i=0; i<numberOfRuns; i++) {
+				long start = System.nanoTime();
+				SimulationResult result = launcher.launch(0, TIME_STEP, TIME_STEP * maxSimulationSize + TIME_STEP, getVectors(), numberOfSimulations);
+				long end = System.nanoTime();
+				times[i] = end-start;
+				for(int j=0; j<result.getNumberOfSimulations(); j++) {
+					sumLength += result.getSimulation(j).getLength();
+				}
 			}
-			return new SimulationBenchmarkResult(end - start, sumLength / result.getNumberOfSimulations());
+			
+			if (launcher instanceof AbstractCudaSimulationLauncher) {
+				((AbstractCudaSimulationLauncher) launcher).clean();
+			}
+			System.gc();
+			return new SimulationBenchmarkResult(getAvgTime(times), sumLength / (numberOfSimulations * numberOfRuns));
 		}
-		catch(CudaException e) {
-//			System.err.println(e.getMessage());
+		catch(RuntimeException e) {
+			System.err.println(e.getMessage());
 			return new SimulationBenchmarkResult(0, 0);
 		}
 		
+	}
+
+	private long getAvgTime(long[] times) {
+		if (times.length == 1) {
+			return times[0];
+		}
+		if (times.length == 2) {
+			return (times[0] + times[1]) / 2;
+		}
+		long avgTime = 0;
+		long minTime = Long.MAX_VALUE;
+		long maxTime = Long.MIN_VALUE;
+		for(int i=0; i<times.length; i++) {
+			avgTime += times[i];
+			if (minTime < times[i]) minTime = times[i];
+			if (maxTime > times[i]) maxTime = times[i];
+		}
+		return (avgTime - minTime - maxTime) / (times.length - 2);
 	}
 
 	private float[] getVectors() {

@@ -201,20 +201,23 @@ void __global__ rkf45_kernel(
 		else {
 			// result
 			float dim_result = vector[dimension_id] + N1 * k1 + N3 * k3 + N4 * k4 + N5 * k5;
-			// compute relative error
-			result_points[(simulation_max_size + 1) * vector_size * simulation_id  + vector_size * (position+1) + dimension_id] = my_error/dim_result;
-			__threadfence_block();
-			__syncthreads();
-			// sync relative error
+			// relative error			
 			float rel_error  = 0;
-			for(int i=0; i<vector_size; i++) {
-				if (rel_error < result_points[(simulation_max_size + 1) * vector_size * simulation_id  + vector_size * (position+1) + i]) {
-					rel_error = result_points[(simulation_max_size + 1) * vector_size * simulation_id  + vector_size * (position+1) + i];
+			if (max_rel_divergency > 0 || min_rel_divergency > 0) {	
+				// compute relative error
+				result_points[(simulation_max_size + 1) * vector_size * simulation_id  + vector_size * (position+1) + dimension_id] = abs(my_error/dim_result);
+				__threadfence_block();
+				__syncthreads();
+				// sync relative error
+				for(int i=0; i<vector_size; i++) {
+					if (rel_error < result_points[(simulation_max_size + 1) * vector_size * simulation_id  + vector_size * (position+1) + i]) {
+						rel_error = result_points[(simulation_max_size + 1) * vector_size * simulation_id  + vector_size * (position+1) + i];
+					}
 				}
+				__syncthreads();
 			}
-			__syncthreads();
 			// check relative error
-			if (rel_error > max_rel_divergency) {
+			if (max_rel_divergency > 0 && rel_error > max_rel_divergency) {
 				// compute a new time step
 				h /= 2;
 				if (h < MINIMUM_TIME_STEP) {
@@ -364,9 +367,8 @@ void __global__ euler_kernel(
 	int dimension_id  = id_in_block % vector_size;
 
 	// reset number of executed steps and set the default time step
-	*number_of_executed_steps = 0;	
-	float h = 0.1 * time_step;
-	if (h < MINIMUM_TIME_STEP) h = MINIMUM_TIME_STEP;
+	number_of_executed_steps[simulation_id] = 0;	
+	float h = time_step;
 
 	// set current time and position
 	float current_time 	= time;
@@ -386,12 +388,12 @@ void __global__ euler_kernel(
 		steps++;
 		float dim_result;
 		ode_function(current_time + h, vector, dimension_id, vector_size, function_coefficients, function_coefficient_indexes, function_factors, function_factor_indexes, &dim_result);
-		vector[dimension_id] = vector[dimension_id] + h * dim_result;
+		dim_result = vector[dimension_id] + h * dim_result;
 		current_time += h;
 		if (current_time >= time_step * (position+1)) {
+			vector[dimension_id] = dim_result;
 			result_times[simulation_id * simulation_max_size + position] = current_time;
 			position++;
-			dim_result = vector[dimension_id];
 			vector = &(result_points[(simulation_max_size + 1) * vector_size * simulation_id  + vector_size * position]);
 			vector[dimension_id] = dim_result;
 		}

@@ -1,5 +1,6 @@
 package org.sybila.ode.cuda;
 
+import java.util.Arrays;
 import org.sybila.ode.Simulation;
 
 public class SimulationResult implements org.sybila.ode.SimulationResult

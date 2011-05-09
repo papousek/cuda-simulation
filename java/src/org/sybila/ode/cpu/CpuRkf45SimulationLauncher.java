@@ -37,7 +37,7 @@ public class CpuRkf45SimulationLauncher extends AbstractCpuSimulationLauncher {
 	private static final float N3 = (float) (1408.0 / 2565.0);
 	private static final float N4 = (float) (2197.0 / 4104.0);
 	private static final float N5 = (float) (-1.0 / 5.0);
-	private static final float MINIMUM_TIME_STEP = (float) 0.000001;
+	private static final float MINIMUM_TIME_STEP = (float) 0.00000000001;
 	private static final float MAXIMUM_TIME_STEP = (float) 100;
 	private static final float MINIMUM_SCALAR_TO_OPTIMIZE_STEP = (float) 0.01;
 	private static final float MAXIMUM_SCALAR_TO_OPTIMIZE_STEP = (float) 4.0;
@@ -70,9 +70,10 @@ public class CpuRkf45SimulationLauncher extends AbstractCpuSimulationLauncher {
 		float currentTime = time;
 		int position = 0;
 		float myStep = timeStep;
-
+		float[] localError = new float[getDimension()];
+		float[] data = previous.toArray();
+		
 		for (int step = 0; step < MAX_NUMBER_OF_EXECUTED_STEPS; step++) {
-			float[] data = previous.toArray();
 			float error = 0;
 			// K1
 			for (int dim = 0; dim < getDimension(); dim++) {
@@ -115,9 +116,9 @@ public class CpuRkf45SimulationLauncher extends AbstractCpuSimulationLauncher {
 			}
 			// maximum error
 			for (int dim = 0; dim < getDimension(); dim++) {
-				float localError = Math.abs(R1 * k1[dim] + R3 * k3[dim] + R4 * k4[dim] + R5 * k5[dim] + R6 * k6[dim]);
-				if (localError > error) {
-					error = localError;
+				localError[dim] = Math.abs(R1 * k1[dim] + R3 * k3[dim] + R4 * k4[dim] + R5 * k5[dim] + R6 * k6[dim]);
+				if (localError[dim] > error) {
+					error = localError[dim];
 				}
 			}
 			// reset data
@@ -132,7 +133,7 @@ public class CpuRkf45SimulationLauncher extends AbstractCpuSimulationLauncher {
 				if (error > 0 && hasMaxRelDivergency()) {
 					double relError = 0;
 					for (int dim = 0; dim < getDimension(); dim++) {
-						double re = error / data[dim];
+						double re = Math.abs(localError[dim] / data[dim]);
 						if (re > relError) {
 							relError = re;
 						}

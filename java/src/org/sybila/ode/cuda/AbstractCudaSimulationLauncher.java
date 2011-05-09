@@ -10,6 +10,8 @@ abstract public class AbstractCudaSimulationLauncher extends AbstractSimulationL
 
 	protected static final int BLOCK_SIZE = 32;
 
+	protected static final int MAX_NUMBER_OF_THREADS_IN_BLOCK = 512;
+
 	private SimulationWorkspace workspace;
 
 	private cudaStream_t stream;
@@ -20,6 +22,9 @@ abstract public class AbstractCudaSimulationLauncher extends AbstractSimulationL
 
 	public AbstractCudaSimulationLauncher(int dimension, int maxNumberOfSimulations, int maxSimulationSize, MultiAffineFunction function, float minAbsDivergency, float maxAbsDivergency, float minRelDivergency, float maxRelDivergency) {
 		super(dimension, maxNumberOfSimulations, maxSimulationSize, function, minAbsDivergency, maxAbsDivergency, minRelDivergency, maxRelDivergency);
+		if (dimension > 100) {
+			throw new IllegalArgumentException("The dimension can't be greater than 100.");
+		}
 	}
 
 	public SimulationResult launch(
@@ -38,7 +43,7 @@ abstract public class AbstractCudaSimulationLauncher extends AbstractSimulationL
 
 		// run kernel
 		KernelLauncher launcher = KernelLauncher.load(getKernelFile(), getKernelName());
-		int blockDim = BLOCK_SIZE * ((BLOCK_SIZE/2) / getWorkspace().getDimension());
+		int blockDim = BLOCK_SIZE * (BLOCK_SIZE/2) / getWorkspace().getDimension();
 		int gridDim = (int) Math.ceil(Math.sqrt((float) numberOfSimulations / blockDim));
 		launcher.setGridSize(gridDim, gridDim);
 		launcher.setBlockSize(blockDim, getWorkspace().getDimension(), 1);
@@ -75,7 +80,7 @@ abstract public class AbstractCudaSimulationLauncher extends AbstractSimulationL
 		clean();
 	}
 
-	protected void clean() {
+	public void clean() {
 		if (workspace == null) {
 			workspace.destroy();
 		}
