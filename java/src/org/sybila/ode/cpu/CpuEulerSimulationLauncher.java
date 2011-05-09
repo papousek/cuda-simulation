@@ -31,19 +31,18 @@ public class CpuEulerSimulationLauncher extends AbstractCpuSimulationLauncher
 		for (int i=0; i<getDimension(); i++) {
 			initData[i] = vectors[simulationId * getDimension() + i];
 		}
-		Point previous = new Point(getDimension(), time, initData);
+//		Point previous = new Point(getDimension(), time, initData);
 		float currentTime = time;
 		int position = 0;
-		float[] data = new float[getDimension()];
+		float[] data = new Point(getDimension(), time, initData).toArray();
 		for (int step=0; step<MAX_NUMBER_OF_EXECUTED_STEPS; step++) {
 			currentTime += TIME_STEP;
 			for(int dim=0; dim<getDimension(); dim++) {
-				data[dim] = previous.getValue(dim) + TIME_STEP * getFunction().compute(dim, previous);
+				data[dim] = data[dim] + TIME_STEP * getFunction().compute(dim, data);
 			}
-			previous = new Point(getDimension(), currentTime, data);
 			if (currentTime >= (position+1) * timeStep) {
 				position++;
-				points.add(previous);
+				points.add(new Point(getDimension(), currentTime, data));
 			}
 			if (currentTime >= targetTime) break;
 			if (position >= getMaxSimulationSize()) break;
