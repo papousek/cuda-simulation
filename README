@@ -1,0 +1,13 @@
+REQUIREMENT
+================================================================================
+  * Java Runtime Environment version >= 6.0
+  * CUDA Toolkit version >= 3.1
+  * Graphics card supporting CUDA with compute capabality >= 2.0
+
+USAGE
+================================================================================
+  * from command line
+     * [make]		- compile CUDA C files
+     * [ant test] 	- execute simple tests
+     * [ant main] 	- execute simple benchmark
+     * [./benchmark]	- execute simple benchmark with increased size of heap
