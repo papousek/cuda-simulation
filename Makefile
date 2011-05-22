@@ -7,15 +7,11 @@ FLAGS=-O2 -gencode=arch=compute_20,code=\"sm_20\" -gencode=arch=compute_20,code=
 CUBIN_FLAGS=-cubin
 CC=nvcc
 
-.PHONY:
+.PHONY: 
 compile:
-	$(CC) $(FLAGS) -o $(BUILDDIR)/$(OUTFILE) $(SRCDIR)/$(SRCFILE);
-
-.PHONY: cubin
-cubin:
 	$(CC) $(CUBIN_FLAGS) $(FLAGS) -o $(BUILDDIR)/$(OUTFILE) $(SRCDIR)/$(SRCFILE);
 
 .PHONY: debug
 debug:
-	$(CC) $(DEBUG_FLAGS) $(FLAGS) -o $(BUILDDIR)/$(OUTFILE) $(SRCDIR)/$(SRCFILE);
+	$(CC) $(DEBUG_FLAGS) $(CUBIN_FLAGS) $(FLAGS) -o $(BUILDDIR)/$(OUTFILE) $(SRCDIR)/$(SRCFILE);
 
