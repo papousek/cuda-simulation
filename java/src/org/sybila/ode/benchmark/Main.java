@@ -13,22 +13,22 @@ import org.sybila.ode.cuda.CudaSimpleEulerSimulationLauncher;
 
 public class Main {
 
-	private static final int DIMENSION = 100;
-	private static final int MAX_NUMBER_OF_SIMULATIONS = 1000;
-	private static final int MIN_NUMBER_OF_SIMULATIONS = 100;
-	private static final int NUMBER_OF_SIMULATIONS_STEP = 100;
+	private static final int DIMENSION = 10;
+	private static final int MAX_NUMBER_OF_SIMULATIONS = 30000;
+	private static final int MIN_NUMBER_OF_SIMULATIONS = 1000;
+	private static final int NUMBER_OF_SIMULATIONS_STEP = 1000;
 	private static final int SIMULATION_LENGTH = 1000;
 
 	public static void main(String[] args) {
-		EquationSystem system = SimulationBenchmark.createSimpleFunction(DIMENSION);
+		EquationSystem system = SimulationBenchmark.createLinearFunction(DIMENSION);
 		header(system);
 		MultiAffineFunction function = system.getFunction();
 		SimulationLauncher[] launchers = new SimulationLauncher[]{
 			new CpuEulerSimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS, SIMULATION_LENGTH, function),
 			new CpuRkf45SimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS, SIMULATION_LENGTH, function),
-			new CudaRkf45SimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS,SIMULATION_LENGTH, function),
-			new CudaEulerSimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS,SIMULATION_LENGTH, function),
-			new CudaSimpleEulerSimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS,SIMULATION_LENGTH, function),
+//			new CudaRkf45SimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS,SIMULATION_LENGTH, function),
+//			new CudaEulerSimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS,SIMULATION_LENGTH, function),
+//			new CudaSimpleEulerSimulationLauncher(DIMENSION, MAX_NUMBER_OF_SIMULATIONS,SIMULATION_LENGTH, function),
 		};
 
 		for (int numberOfSimulations = MIN_NUMBER_OF_SIMULATIONS; numberOfSimulations <= MAX_NUMBER_OF_SIMULATIONS; numberOfSimulations += NUMBER_OF_SIMULATIONS_STEP) {
@@ -58,6 +58,7 @@ public class Main {
 		System.out.println("  MAX THREADS PER BLOCK:         " + properties.maxThreadsPerBlock);
 		System.out.println("  MAX THREADS DIM:               [" + properties.maxThreadsDim[0] + ", " + properties.maxThreadsDim[1] + ", " + properties.maxThreadsDim[2] + "]");
 		System.out.println("  MAX GRID SIZE:                 [" + properties.maxGridSize[0] + ", " + properties.maxGridSize[1] + ", " + properties.maxGridSize[2] + "]");
+		System.out.println("  HEAP SIZE:                     " + Runtime.getRuntime().totalMemory() / (1024 * 1024) + " MB");
 		line();
 		System.out.println("  EQUATION SYSTEM: ");
 		System.out.println(system);
